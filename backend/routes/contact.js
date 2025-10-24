@@ -60,7 +60,7 @@ router.post('/', [
 
     res.json({
       success: true,
-      message: 'Thank you for your message! We\'ll get back to you soon.',
+      message: 'Message sent successfully!',
       reference
     });
 
