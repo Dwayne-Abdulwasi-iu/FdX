@@ -2,6 +2,7 @@ services:
   - type: web
     name: fedex-shipping
     env: node
+    rootDir: .
     buildCommand: npm install
     startCommand: npm start
     envVars:
@@ -9,3 +10,9 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: MONGODB_URI
+        value: mongodb+srv://lytleewayne:Abdulwasiu@cluster0.as7yeiu.mongodb.net/fedex-shipping?retryWrites=true&w=majority&ssl=true&authSource=admin&appName=Cluster0
+      - key: JWT_SECRET
+        value: FedEx2025_Sh1pp1ng_Pr0duct10n_JWT_K3y_V3ry_S3cur3_Ch4ng3_Th1s
+      - key: ADMIN_KEY
+        value: FEDEX_ADMIN_2025
