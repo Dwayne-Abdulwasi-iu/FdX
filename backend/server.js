@@ -97,10 +97,8 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 3002;
 
-app.listen(PORT, () => {
-  console.log(`🚚 FedeX Shipping Server running on port ${PORT}`);
-  console.log(`📱 Frontend available at http://localhost:${PORT}`);
-  console.log(`🔗 API available at http://localhost:${PORT}/api`);
-});
-
-module.exports = app;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚚 FedeX Shipping Server running on port ${PORT}`);
+    console.log(`📱 Frontend available at http://localhost:${PORT}`);
+    console.log(`🔗 API available at http://localhost:${PORT}/api`);
+});module.exports = app;
