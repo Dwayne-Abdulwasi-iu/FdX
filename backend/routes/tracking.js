@@ -26,7 +26,7 @@ router.get('/:trackingNumber', [
     if (!shipment) {
       return res.status(404).json({
         success: false,
-        message: 'Shipment not found. Please check your tracking number and try again.'
+        message: 'Tracking number not found'
       });
     }
 

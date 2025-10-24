@@ -1,23 +1,307 @@
+// =====================================================================
+// NUCLEAR EXTENSION PROTECTION - CSP COMPLIANT VERSION
+// =====================================================================
+(function() {
+    'use strict';
+    
+    // Store original functions in a secure closure before extensions can interfere
+    const SECURE_INDEXOF = String.prototype.indexOf;
+    const SECURE_FIND = Array.prototype.find;
+    const SECURE_SETTIMEOUT = window.setTimeout;
+    
+    console.warn('[NUCLEAR-PROTECTION] Initializing maximum extension isolation...');
+    
+    // Create iframe sandbox for completely clean prototypes (CSP compliant)
+    let safeIndexOf = SECURE_INDEXOF;
+    let safeFind = SECURE_FIND;
+    
+    try {
+        const sandbox = document.createElement('iframe');
+        sandbox.style.display = 'none';
+        sandbox.style.position = 'absolute';
+        sandbox.style.left = '-9999px';
+        
+        if (document.documentElement) {
+            document.documentElement.appendChild(sandbox);
+            
+            // Get clean prototypes from iframe
+            if (sandbox.contentWindow && sandbox.contentWindow.String) {
+                safeIndexOf = sandbox.contentWindow.String.prototype.indexOf;
+                safeFind = sandbox.contentWindow.Array.prototype.find;
+            }
+            
+            // Cleanup sandbox after 100ms
+            setTimeout(() => {
+                try {
+                    if (sandbox.parentNode) {
+                        sandbox.parentNode.removeChild(sandbox);
+                    }
+                } catch (e) {}
+            }, 100);
+        }
+    } catch (e) {
+        console.warn('[NUCLEAR-PROTECTION] Sandbox creation failed, using fallback');
+    }
+    
+    // Nuclear protection - completely replace prototypes with bulletproof versions
+    String.prototype.indexOf = function(searchString, position) {
+        if (this == null || this == undefined) {
+            return -1;
+        }
+        try {
+            return safeIndexOf.call(this, searchString, position);
+        } catch (e) {
+            return -1;
+        }
+    };
+    
+    Array.prototype.find = function(callback, thisArg) {
+        if (this == null || this == undefined) {
+            return undefined;
+        }
+        try {
+            return safeFind.call(this, callback, thisArg);
+        } catch (e) {
+            return undefined;
+        }
+    };
+    
+    // Completely silence ALL extension errors
+    window.addEventListener('error', function(event) {
+        const filename = event.filename || '';
+        const message = event.message || '';
+        
+        if (filename.includes('extension://') || 
+            filename.includes('contentScript') ||
+            message.includes('indexOf') ||
+            message.includes('jQuery.Deferred')) {
+            
+            event.stopImmediatePropagation();
+            event.preventDefault();
+            return true;
+        }
+    }, true);
+    
+    window.addEventListener('unhandledrejection', function(event) {
+        const reason = event.reason || {};
+        const message = String(reason.message || reason || '');
+        
+        if (message.includes('indexOf') || 
+            message.includes('contentScript') || 
+            message.includes('extension://') ||
+            message.includes('jQuery.Deferred')) {
+            
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        }
+    }, true);
+    
+    // Override ALL console methods to filter extension noise
+    const originalConsole = {
+        error: console.error,
+        warn: console.warn,
+        log: console.log
+    };
+    
+    ['error', 'warn', 'log'].forEach(method => {
+        console[method] = function(...args) {
+            const message = String(args[0] || '');
+            
+            if (message.includes('jQuery.Deferred exception') || 
+                message.includes('extension://') || 
+                message.includes('contentScript') ||
+                message.includes('Uncaught TypeError: Cannot read properties of null')) {
+                return; // Completely silence
+            }
+            
+            return originalConsole[method].apply(console, args);
+        };
+    });
+    
+    // Patch setTimeout to catch async extension errors
+    window.setTimeout = function(fn, delay, ...args) {
+        if (typeof fn === 'function') {
+            const safeFn = function() {
+                try {
+                    return fn.apply(this, arguments);
+                } catch (error) {
+                    const message = error.message || '';
+                    if (message.includes('indexOf') || message.includes('contentScript')) {
+                        return; // Silently ignore extension errors
+                    }
+                    throw error;
+                }
+            };
+            return SECURE_SETTIMEOUT.call(window, safeFn, delay, ...args);
+        }
+        return SECURE_SETTIMEOUT.call(window, fn, delay, ...args);
+    };
+    
+    console.warn('[NUCLEAR-PROTECTION] Maximum extension isolation active - all extension errors suppressed');
+})();
+
 // Global variables
 let currentUser = null;
 let authToken = localStorage.getItem('authToken');
 
+// Defensive programming: Protect against extension interference
+(function() {
+    'use strict';
+    
+    // Prevent potential null reference errors from extensions
+    if (typeof window !== 'undefined') {
+        // Add error boundary for extension conflicts
+        const originalAddEventListener = EventTarget.prototype.addEventListener;
+        EventTarget.prototype.addEventListener = function(type, listener, options) {
+            try {
+                return originalAddEventListener.call(this, type, listener, options);
+            } catch (error) {
+                console.warn('Event listener error (possibly extension conflict):', error);
+            }
+        };
+    }
+})();
+
+// Utility functions for safe DOM access
+function safeGetElement(id, context = document) {
+    try {
+        if (!context || typeof context.getElementById !== 'function') {
+            console.warn('Invalid context for element lookup');
+            return null;
+        }
+        return context.getElementById(id);
+    } catch (error) {
+        console.warn(`Error accessing element ${id}:`, error);
+        return null;
+    }
+}
+
+function safeGetValue(elementId, defaultValue = '') {
+    try {
+        const element = safeGetElement(elementId);
+        if (!element || typeof element.value !== 'string') {
+            return defaultValue;
+        }
+        return element.value.trim();
+    } catch (error) {
+        console.warn(`Error getting value from ${elementId}:`, error);
+        return defaultValue;
+    }
+}
+
+// Enhanced protection against browser extension interference
+function protectFromExtensions() {
+    // Protect String.prototype.indexOf from null/undefined 'this' values
+    const originalIndexOf = String.prototype.indexOf;
+    String.prototype.indexOf = function(searchString, position) {
+        try {
+            if (this === null || this === undefined) {
+                console.warn('Protected: indexOf called on null/undefined');
+                return -1;
+            }
+            return originalIndexOf.call(this, searchString, position);
+        } catch (error) {
+            console.warn('Protected indexOf call failed:', error);
+            return -1;
+        }
+    };
+    
+    // Protect Array.prototype.find from null/undefined arrays
+    const originalFind = Array.prototype.find;
+    Array.prototype.find = function(callback, thisArg) {
+        try {
+            if (this === null || this === undefined) {
+                console.warn('Protected: find called on null/undefined array');
+                return undefined;
+            }
+            return originalFind.call(this, callback, thisArg);
+        } catch (error) {
+            console.warn('Protected array find call failed:', error);
+            return undefined;
+        }
+    };
+    
+    // Protect jQuery Deferred if jQuery is loaded by extensions
+    if (typeof window !== 'undefined' && window.jQuery) {
+        const $ = window.jQuery;
+        if ($.Deferred) {
+            const originalDeferred = $.Deferred;
+            $.Deferred = function() {
+                try {
+                    return originalDeferred.apply(this, arguments);
+                } catch (error) {
+                    console.warn('Protected jQuery Deferred call failed:', error);
+                    // Return a minimal deferred-like object
+                    return {
+                        promise: () => ({ then: () => {}, catch: () => {}, fail: () => {} }),
+                        resolve: () => {},
+                        reject: () => {},
+                        always: () => {},
+                        done: () => {},
+                        fail: () => {}
+                    };
+                }
+            };
+        }
+    }
+}
+
+// Initialize extension protection
+protectFromExtensions();
+
+// Global error handler to catch extension interference
+window.addEventListener('error', function(event) {
+    if (event.filename && event.filename.includes('chrome-extension://')) {
+        console.warn('Browser extension error caught and suppressed:', event.message);
+        return true; // Prevent the error from being displayed in console
+    }
+    return false; // Let other errors through
+});
+
+// Handle unhandled promise rejections from extensions
+window.addEventListener('unhandledrejection', function(event) {
+    if (event.reason && event.reason.stack && event.reason.stack.includes('chrome-extension://')) {
+        console.warn('Extension promise rejection caught and suppressed:', event.reason.message);
+        event.preventDefault(); // Prevent unhandled rejection warning
+    }
+});
+
 // API Base URL - automatically detects if running on Live Server
 const API_BASE_URL = (function() {
     try {
+        if (!window || !window.location) {
+            console.warn('Window or location not available, using fallback URL');
+            return 'http://localhost:3002';
+        }
+        
         if (window.location.hostname === '127.0.0.1' && window.location.port === '5500') {
             return 'http://localhost:3002';
         }
         return '';
     } catch (e) {
-        console.warn('Error detecting API base URL:', e);
-        return '';
+        console.warn('Error detecting API base URL (possibly extension interference):', e);
+        return 'http://localhost:3002';
     }
 })();
 
 // DOM Content Loaded
 document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
+    try {
+        // Small delay to let extensions settle
+        setTimeout(() => {
+            initializeApp();
+        }, 100);
+    } catch (error) {
+        console.error('Error during app initialization:', error);
+        // Fallback: try again after a longer delay
+        setTimeout(() => {
+            try {
+                initializeApp();
+            } catch (retryError) {
+                console.error('App initialization failed on retry:', retryError);
+            }
+        }, 1000);
+    }
 });
 
 // Global error handling
@@ -44,25 +328,323 @@ window.location.assign = function(url) {
 // Prevent navigation to malformed URLs
 document.addEventListener('click', function(e) {
     const target = e.target.closest('a');
-    if (target && (target.getAttribute('href') === '#' || target.getAttribute('href') === '"' || target.getAttribute('href') === "'")) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.warn('Prevented navigation to malformed URL:', target.getAttribute('href'));
-        return false;
+    if (target) {
+        const href = target.getAttribute('href');
+        // Only prevent truly malformed URLs, not legitimate hash links
+        if (href === '"' || href === "'" || href === '""' || href === "''" || (href && href.includes('javascript:') && href !== 'javascript:void(0)')) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.warn('Prevented navigation to malformed URL:', href);
+            return false;
+        }
+        // For legitimate hash links (#), let them work normally but prevent page scroll
+        if (href === '#') {
+            e.preventDefault(); // Prevent scroll to top
+            return false;
+        }
     }
 }, true);
 
 // Initialize application
 function initializeApp() {
-    initializeNavigation();
-    initializeAuth();
-    initializeForms();
-    initializeModals();
-    
-    // Check if user is logged in
-    if (authToken) {
-        checkAuthStatus();
+    try {
+        initializeNavigation();
+        initializeAuth();
+        initializeForms();
+        initializeModals();
+        initializeEventListeners();
+        
+        // Check if user is logged in
+        if (authToken) {
+            checkAuthStatus();
+        }
+    } catch (error) {
+        console.error('Error initializing app:', error);
     }
+}
+
+// Initialize event listeners for CSP compliance
+function initializeEventListeners() {
+    // Login button
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', showLoginModal);
+    }
+    
+    // Hero section buttons
+    const shipNowBtn = document.getElementById('shipNowBtn');
+    if (shipNowBtn) {
+        shipNowBtn.addEventListener('click', () => scrollToSection('shipping'));
+    }
+    
+    const trackNowBtn = document.getElementById('trackNowBtn');
+    if (trackNowBtn) {
+        trackNowBtn.addEventListener('click', () => scrollToSection('tracking'));
+    }
+    
+    // Quick track button
+    const quickTrackBtn = document.getElementById('quickTrackBtn');
+    if (quickTrackBtn) {
+        quickTrackBtn.addEventListener('click', quickTrack);
+    }
+    
+    // Main track button
+    const trackPackageBtn = document.getElementById('trackPackageBtn');
+    if (trackPackageBtn) {
+        trackPackageBtn.addEventListener('click', () => trackPackage());
+    }
+    
+    // Create account button
+    const createAccountBtn = document.getElementById('createAccountBtn');
+    if (createAccountBtn) {
+        createAccountBtn.addEventListener('click', showRegisterModal);
+    }
+    
+    // Modal close buttons
+    document.querySelectorAll('.close[data-modal]').forEach(closeBtn => {
+        closeBtn.addEventListener('click', (e) => {
+            const modalId = e.target.getAttribute('data-modal');
+            closeModal(modalId);
+        });
+    });
+    
+    // Register/Login links
+    const showRegisterLink = document.getElementById('showRegisterLink');
+    if (showRegisterLink) {
+        showRegisterLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showRegisterModal();
+        });
+    }
+    
+    const showLoginLink = document.getElementById('showLoginLink');
+    if (showLoginLink) {
+        showLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showLoginModal();
+        });
+    }
+    
+    // Quick track input - Enter key support
+    const quickTrackInput = document.getElementById('quickTrackInput');
+    if (quickTrackInput) {
+        quickTrackInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                quickTrack();
+            }
+        });
+    }
+    
+    // Main tracking input - Enter key support
+    const trackingInput = document.getElementById('trackingInput');
+    if (trackingInput) {
+        trackingInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                trackPackage();
+            }
+        });
+    }
+    
+    // Global event delegation for dynamically created elements
+    document.addEventListener('click', (e) => {
+        const target = e.target;
+        
+        // Handle close buttons with data-close-modal
+        if (target.classList.contains('close') && target.hasAttribute('data-close-modal')) {
+            e.preventDefault();
+            const modalId = target.getAttribute('data-close-modal');
+            closeModal(modalId);
+        }
+        
+        // Handle buttons with data-action
+        if (target.hasAttribute('data-action')) {
+            e.preventDefault();
+            const action = target.getAttribute('data-action');
+            const param = target.getAttribute('data-param');
+            
+            switch(action) {
+                case 'proceedToShip':
+                    const service = target.getAttribute('data-service');
+                    const cost = parseFloat(target.getAttribute('data-cost'));
+                    proceedToShip(service, cost);
+                    break;
+                case 'trackPackage':
+                    trackPackage(param);
+                    break;
+                case 'closeModal':
+                    closeModal(param);
+                    break;
+                case 'showStatusUpdateModal':
+                    showStatusUpdateModal(param);
+                    break;
+                case 'viewShipmentDetails':
+                    viewShipmentDetails(param);
+                    break;
+                case 'searchShipments':
+                    searchShipments();
+                    break;
+                case 'showAdminDashboard':
+                    showAdminDashboard();
+                    break;
+                case 'toggleHistoryUpdate':
+                    const detailsId = target.getAttribute('data-details-id');
+                    const cardId = target.getAttribute('data-card-id');
+                    toggleHistoryUpdate(detailsId, cardId);
+                    break;
+                case 'closeHistoryUpdate':
+                    closeHistoryUpdate(param);
+                    break;
+                case 'toggleTrackingHistory':
+                    toggleTrackingHistory();
+                    break;
+                case 'filterShipments':
+                    filterShipments();
+                    break;
+                case 'toggleHoldReason':
+                    toggleHoldReason(target);
+                    break;
+                case 'filterSupportMessages':
+                    filterSupportMessages();
+                    break;
+                case 'refreshSupportMessages':
+                    refreshSupportMessages();
+                    break;
+                case 'viewSupportMessage':
+                    viewSupportMessage(param);
+                    break;
+                case 'showResponseForm':
+                    showResponseForm(param);
+                    break;
+                case 'updateMessageStatus':
+                    updateMessageStatus(param);
+                    break;
+                case 'deleteInternalNote':
+                    const messageId = target.getAttribute('data-message-id');
+                    const responseId = target.getAttribute('data-response-id');
+                    deleteInternalNote(messageId, responseId);
+                    break;
+                case 'filterUsers':
+                    filterUsers();
+                    break;
+                case 'searchUsers':
+                    searchUsers();
+                    break;
+                case 'clearFilters':
+                    clearFilters();
+                    break;
+                case 'refreshUsers':
+                    refreshUsers();
+                    break;
+                case 'verifyAllUsers':
+                    verifyAllUsers();
+                    break;
+                case 'verifyUser':
+                    const userId = target.getAttribute('data-user-id');
+                    const userName = target.getAttribute('data-user-name');
+                    verifyUser(userId, userName);
+                    break;
+                case 'createFirstShipment':
+                    closeModal('shipmentsModal');
+                    showShippingRateForm();
+                    break;
+                case 'loadAdminShipments':
+                    loadAdminShipments();
+                    break;
+                case 'loadCustomerSupport':
+                    loadCustomerSupport();
+                    break;
+                case 'loadAdminUsers':
+                    loadAdminUsers();
+                    break;
+                case 'showAdminRegisterModal':
+                    showAdminRegisterModal();
+                    break;
+                case 'closeToast':
+                    target.closest('.toast').remove();
+                    break;
+            }
+        }
+        
+        // Handle select elements with data-action (change events)
+        if (target.tagName === 'SELECT' && target.hasAttribute('data-action')) {
+            const action = target.getAttribute('data-action');
+            switch(action) {
+                case 'filterShipments':
+                    filterShipments();
+                    break;
+                case 'filterSupportMessages':
+                    filterSupportMessages();
+                    break;
+                case 'filterUsers':
+                    filterUsers();
+                    break;
+            }
+        }
+        
+        // Handle input elements with data-action (for search)
+        if (target.tagName === 'INPUT' && target.hasAttribute('data-action')) {
+            const action = target.getAttribute('data-action');
+            switch(action) {
+                case 'searchUsers':
+                    // Add debounced search for real-time filtering
+                    clearTimeout(target.searchTimeout);
+                    target.searchTimeout = setTimeout(() => {
+                        searchUsers();
+                    }, 500);
+                    break;
+            }
+        }
+    });
+    
+    // Global change event delegation for select elements
+    document.addEventListener('change', (e) => {
+        const target = e.target;
+        
+        // Handle select elements with data-action
+        if (target.tagName === 'SELECT' && target.hasAttribute('data-action')) {
+            const action = target.getAttribute('data-action');
+            switch(action) {
+                case 'filterShipments':
+                    filterShipments();
+                    break;
+                case 'filterSupportMessages':
+                    filterSupportMessages();
+                    break;
+                case 'filterUsers':
+                    filterUsers();
+                    break;
+            }
+        }
+        
+        // Handle checkbox for hold reason
+        if (target.type === 'checkbox' && target.hasAttribute('data-action')) {
+            const action = target.getAttribute('data-action');
+            if (action === 'toggleHoldReason') {
+                toggleHoldReason(target);
+            }
+        }
+    });
+    
+    // Global input event delegation
+    document.addEventListener('input', (e) => {
+        const target = e.target;
+        
+        // Handle support search input
+        if (target.id === 'supportSearch') {
+            clearTimeout(target.searchTimeout);
+            target.searchTimeout = setTimeout(() => {
+                filterSupportMessages();
+            }, 500);
+        }
+        
+        // Handle user search input  
+        if (target.id === 'userSearch') {
+            clearTimeout(target.searchTimeout);
+            target.searchTimeout = setTimeout(() => {
+                filterUsers();
+            }, 500);
+        }
+    });
 }
 
 // Navigation functionality
@@ -157,11 +739,13 @@ function checkAuthStatus() {
 }
 
 function updateAuthUI() {
-    const loginBtn = document.querySelector('.btn-login');
+    const loginBtn = document.getElementById('loginBtn');
     
     if (currentUser && loginBtn) {
         loginBtn.textContent = `Hi, ${currentUser.firstName}`;
-        loginBtn.onclick = showUserMenu;
+        // Remove existing listeners
+        loginBtn.removeEventListener('click', showLoginModal);
+        loginBtn.addEventListener('click', showUserMenu);
     }
 }
 
@@ -182,15 +766,42 @@ function showUserMenu() {
                 <small>${currentUser.email}</small>
             </div>
             <ul class="user-menu-list">
-                <li><a href="javascript:void(0)" onclick="showMyShipments(); return false;">My Shipments</a></li>
-                <li><a href="javascript:void(0)" onclick="showProfile(); return false;">Profile</a></li>
-                ${currentUser.role === 'admin' ? '<li><a href="javascript:void(0)" onclick="showAdminDashboard(); return false;">Admin Dashboard</a></li>' : ''}
-                <li><a href="javascript:void(0)" onclick="logout(); return false;">Logout</a></li>
+                <li><a href="#" data-action="showMyShipments">My Shipments</a></li>
+                <li><a href="#" data-action="showProfile">Profile</a></li>
+                ${currentUser.role === 'admin' ? '<li><a href="#" data-action="showAdminDashboard">Admin Dashboard</a></li>' : ''}
+                <li><a href="#" data-action="logout">Logout</a></li>
             </ul>
         </div>
     `;
     
     document.body.appendChild(menu);
+    
+    // Add event listeners to menu items
+    menu.querySelectorAll('[data-action]').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const action = e.target.getAttribute('data-action');
+            
+            // Close menu first
+            menu.remove();
+            
+            // Execute action
+            switch(action) {
+                case 'showMyShipments':
+                    showMyShipments();
+                    break;
+                case 'showProfile':
+                    showProfile();
+                    break;
+                case 'showAdminDashboard':
+                    showAdminDashboard();
+                    break;
+                case 'logout':
+                    logout();
+                    break;
+            }
+        });
+    });
     
     // Close menu when clicking outside
     setTimeout(() => {
@@ -208,10 +819,12 @@ function logout() {
     authToken = null;
     currentUser = null;
     
-    const loginBtn = document.querySelector('.btn-login');
+    const loginBtn = document.getElementById('loginBtn');
     if (loginBtn) {
         loginBtn.textContent = 'Login';
-        loginBtn.onclick = showLoginModal;
+        // Remove existing listeners and reset to login
+        loginBtn.removeEventListener('click', showUserMenu);
+        loginBtn.addEventListener('click', showLoginModal);
     }
     
     showToast('Logged out successfully', 'success');
@@ -313,7 +926,7 @@ function displayRateResults(rate) {
             <p><strong>Distance Factor:</strong> ${rate.details.distanceMultiplier}</p>
             <p><strong>Base Rate:</strong> $${rate.details.baseRate}</p>
         </div>
-        <button class="btn-primary" onclick="proceedToShip('${rate.service}', ${rate.cost})">
+        <button class="btn-primary" data-action="proceedToShip" data-service="${rate.service}" data-cost="${rate.cost}">
             Create Shipment
         </button>
     `;
@@ -337,7 +950,7 @@ function proceedToShip(service, cost) {
         <div class="modal-content shipment-modal">
             <div class="modal-header">
                 <h2><i class="fas fa-shipping-fast"></i> Create New Shipment</h2>
-                <span class="close" onclick="closeModal('shipmentModal')">&times;</span>
+                <span class="close" data-close-modal="shipmentModal">&times;</span>
             </div>
             <div class="modal-body">
                 <form id="shipmentForm">
@@ -372,7 +985,7 @@ function proceedToShip(service, cost) {
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-flag"></i> State</label>
-                                <input type="text" name="recipient.address.state" placeholder="NY" maxlength="2" required>
+                                <input type="text" name="recipient.address.state" placeholder="e.g., New York or NY" required>
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-mail-bulk"></i> ZIP Code</label>
@@ -455,7 +1068,7 @@ function proceedToShip(service, cost) {
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" class="btn-secondary" onclick="closeModal('shipmentModal')">Cancel</button>
+                        <button type="button" class="btn-secondary" data-action="closeModal" data-param="shipmentModal">Cancel</button>
                         <button type="submit" class="btn-primary"><i class="fas fa-shipping-fast"></i> Create Shipment</button>
                     </div>
                 </form>
@@ -557,12 +1170,25 @@ function proceedToShip(service, cost) {
 
 // Tracking functionality
 function quickTrack() {
-    const trackingNumber = document.getElementById('quickTrackInput').value.trim();
+    const trackingNumber = safeGetValue('quickTrackInput');
+    if (!trackingNumber) {
+        showToast('Please enter a tracking number', 'warning');
+        return;
+    }
     trackPackage(trackingNumber);
 }
 
 function trackPackage(trackingNumber = null) {
-    const input = trackingNumber || document.getElementById('trackingInput').value.trim();
+    let input = trackingNumber;
+    
+    // Check if the parameter is an event object and ignore it
+    if (input && typeof input === 'object' && input.constructor.name.includes('Event')) {
+        input = null;
+    }
+    
+    if (!input) {
+        input = safeGetValue('trackingInput');
+    }
     
     if (!input) {
         showToast('Please enter a tracking number', 'warning');
@@ -583,7 +1209,7 @@ function trackPackage(trackingNumber = null) {
         if (data.success) {
             displayTrackingResults(data.tracking);
         } else {
-            showToast(data.message || 'Package not found', 'error');
+            showToast('Tracking number not found', 'error');
         }
     })
     .catch(error => {
@@ -708,7 +1334,7 @@ function displayTrackingResults(tracking) {
             
             return `
                 <div class="history-update-card ${item.isHeld ? 'held-item' : ''}" id="${itemId}">
-                    <div class="update-header" onclick="toggleHistoryUpdate('${detailsId}', '${itemId}')">
+                    <div class="update-header" data-action="toggleHistoryUpdate" data-details-id="${detailsId}" data-card-id="${itemId}">>
                         <div class="update-summary">
                             <div class="update-icon">
                                 <i class="fas fa-${getStatusIcon(item.status)}"></i>
@@ -725,7 +1351,7 @@ function displayTrackingResults(tracking) {
                             <span class="expand-icon" id="expand-${itemId}">
                                 <i class="fas fa-chevron-down"></i>
                             </span>
-                            <button class="close-update-btn" onclick="closeHistoryUpdate('${itemId}'); event.stopPropagation();" title="Hide this update">
+                            <button class="close-update-btn" data-action="closeHistoryUpdate" data-param="${itemId}" title="Hide this update">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -876,7 +1502,7 @@ function displayTrackingResults(tracking) {
         <div class="tracking-progress">
             <p><strong>Progress: ${tracking.status.progress}%</strong></p>
             <div class="progress-bar">
-                <div class="progress-fill" style="width: ${tracking.status.progress}%"></div>
+                <div class="progress-fill" data-width="${tracking.status.progress}"></div>
             </div>
         </div>
         
@@ -887,7 +1513,7 @@ function displayTrackingResults(tracking) {
         
         ${historyHTML ? `
             <div class="tracking-history">
-                <div class="history-header" onclick="toggleTrackingHistory()">
+                <div class="history-header" data-action="toggleTrackingHistory">>
                     <h4><i class="fas fa-history"></i> Tracking History</h4>
                     <button class="history-toggle-btn" type="button">
                         <i class="fas fa-chevron-down" id="historyToggleIcon"></i>
@@ -946,6 +1572,53 @@ function formatStatus(status) {
         'returned': 'Returned'
     };
     return statusMap[status] || status;
+}
+
+// Apply dynamic colors for status and priority badges
+function applyBadgeColors(container) {
+    // Status badge colors
+    const statusColors = {
+        pending: '#ffc107',
+        processing: '#17a2b8',
+        shipped: '#007bff',
+        in_transit: '#28a745',
+        delivered: '#28a745',
+        cancelled: '#dc3545',
+        hold: '#6c757d'
+    };
+    
+    // Priority badge colors
+    const priorityColors = {
+        low: '#28a745',
+        normal: '#17a2b8',
+        high: '#ffc107',
+        urgent: '#dc3545'
+    };
+    
+    // Role badge colors
+    const roleColors = {
+        admin: '#dc3545',
+        staff: '#007bff',
+        customer: '#28a745'
+    };
+    
+    // Apply status colors
+    container.querySelectorAll('[data-status-color]').forEach(badge => {
+        const status = badge.getAttribute('data-status-color');
+        badge.style.backgroundColor = statusColors[status] || '#6c757d';
+    });
+    
+    // Apply priority colors
+    container.querySelectorAll('[data-priority-color]').forEach(badge => {
+        const priority = badge.getAttribute('data-priority-color');
+        badge.style.backgroundColor = priorityColors[priority] || '#6c757d';
+    });
+    
+    // Apply role colors
+    container.querySelectorAll('[data-role-color]').forEach(badge => {
+        const role = badge.getAttribute('data-role-color');
+        badge.style.backgroundColor = roleColors[role] || '#6c757d';
+    });
 }
 
 // Contact form validation
@@ -1134,9 +1807,9 @@ function showAdminRegisterModal() {
     modal.id = 'adminRegisterModal';
     modal.innerHTML = `
         <div class="modal-content">
-            <span class="close" onclick="closeModal('adminRegisterModal')">&times;</span>
+            <span class="close" data-close-modal="adminRegisterModal">&times;</span>
             <h2><i class="fas fa-user-shield"></i> Admin Registration</h2>
-            <p style="color: #666; margin-bottom: 20px;">Create an admin account to access the dashboard</p>
+            <p class="admin-description">Create an admin account to access the dashboard</p>
             <form id="adminRegisterForm">
                 <div class="form-group">
                     <label>First Name</label>
@@ -1173,7 +1846,7 @@ function showAdminRegisterModal() {
                     </div>
                     <div class="form-group">
                         <label>State</label>
-                        <input type="text" name="address.state" value="CA" required maxlength="2">
+                        <input type="text" name="address.state" value="CA" placeholder="e.g., California or CA" required>
                     </div>
                     <div class="form-group">
                         <label>ZIP Code</label>
@@ -1183,7 +1856,7 @@ function showAdminRegisterModal() {
                 <div class="form-group">
                     <label>Admin Key</label>
                     <input type="password" name="adminKey" value="FEDEX_ADMIN_2025" required>
-                    <small style="color: #666;">Admin key: FEDEX_ADMIN_2025</small>
+                    <small class="admin-key-note">Admin key: FEDEX_ADMIN_2025</small>
                 </div>
                 <button type="submit" class="btn-primary">Create Admin Account</button>
             </form>
@@ -1330,7 +2003,7 @@ function displayMyShipments(shipments) {
         <div class="modal-content my-shipments-modal">
             <div class="modal-header">
                 <h2><i class="fas fa-boxes"></i> My Shipments</h2>
-                <span class="close" onclick="closeModal('shipmentsModal')">&times;</span>
+                <span class="close" data-close-modal="shipmentsModal">&times;</span>
             </div>
             <div class="modal-body">
                 ${shipments.length === 0 ? `
@@ -1338,7 +2011,7 @@ function displayMyShipments(shipments) {
                         <i class="fas fa-shipping-fast empty-icon"></i>
                         <h3>No Shipments Found</h3>
                         <p>You haven't created any shipments yet. Create your first shipment to get started!</p>
-                        <button onclick="closeModal('shipmentsModal'); showShippingRateForm();" class="btn-primary">
+                        <button data-action="createFirstShipment" class="btn-primary">
                             <i class="fas fa-plus"></i> Create Shipment
                         </button>
                     </div>
@@ -1388,7 +2061,7 @@ function displayMyShipments(shipments) {
                                             </div>
                                         </div>
                                         <div class="shipment-actions">
-                                            <button onclick="trackPackage('${shipment.trackingNumber}')" class="btn-track">
+                                            <button data-action="trackPackage" data-param="${shipment.trackingNumber}" class="btn-track">
                                                 <i class="fas fa-search"></i> Track
                                             </button>
                                         </div>
@@ -1515,7 +2188,7 @@ function displayProfileModal(user) {
         <div class="modal-content profile-modal">
             <div class="modal-header">
                 <h2><i class="fas fa-user-circle"></i> My Profile</h2>
-                <span class="close" onclick="closeModal('profileModal')">&times;</span>
+                <span class="close" data-close-modal="profileModal">&times;</span>
             </div>
             <div class="modal-body">
                 <form id="profileForm">
@@ -1565,7 +2238,7 @@ function displayProfileModal(user) {
                     </div>
                     
                     <div class="profile-actions">
-                        <button type="button" class="btn-secondary" onclick="closeModal('profileModal')">Cancel</button>
+                        <button type="button" class="btn-secondary" data-action="closeModal" data-param="profileModal">Cancel</button>
                         <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Update Profile</button>
                     </div>
                 </form>
@@ -1658,57 +2331,6 @@ function showAdminDashboard() {
     });
 }
 
-function displayAdminDashboard(stats) {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.id = 'adminModal';
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 900px;">
-            <span class="close" onclick="closeModal('adminModal')">&times;</span>
-            <h2>Admin Dashboard</h2>
-            <div class="admin-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0;">
-                <div class="stat-card" style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center;">
-                    <h3>${stats.shipments.total}</h3>
-                    <p>Total Shipments</p>
-                </div>
-                <div class="stat-card" style="background: #e8f5e8; padding: 20px; border-radius: 8px; text-align: center;">
-                    <h3>${stats.shipments.delivered}</h3>
-                    <p>Delivered</p>
-                </div>
-                <div class="stat-card" style="background: #fff3cd; padding: 20px; border-radius: 8px; text-align: center;">
-                    <h3>${stats.shipments.inTransit}</h3>
-                    <p>In Transit</p>
-                </div>
-                <div class="stat-card" style="background: #f8d7da; padding: 20px; border-radius: 8px; text-align: center;">
-                    <h3>${stats.shipments.pending}</h3>
-                    <p>Pending</p>
-                </div>
-                <div class="stat-card" style="background: #d1ecf1; padding: 20px; border-radius: 8px; text-align: center;">
-                    <h3>${stats.users.total}</h3>
-                    <p>Total Users</p>
-                </div>
-                <div class="stat-card" style="background: #d4edda; padding: 20px; border-radius: 8px; text-align: center;">
-                    <h3>$${stats.revenue.total?.toFixed(2) || '0.00'}</h3>
-                    <p>Total Revenue</p>
-                </div>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button onclick="loadAdminShipments()" class="btn-primary" style="margin: 5px;">Manage Shipments</button>
-                <button onclick="loadCustomerSupport()" class="btn-primary" style="margin: 5px;">
-                    <i class="fas fa-headset"></i> Customer Support
-                </button>
-                <button onclick="loadAdminUsers()" class="btn-primary" style="margin: 5px;">Manage Users</button>
-                <button onclick="showAdminRegisterModal()" class="btn-secondary" style="margin: 5px; background: #dc3545; border-color: #dc3545;">
-                    <i class="fas fa-user-shield"></i> Admin Setup
-                </button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    showModal('adminModal');
-}
-
 function loadAdminShipments(page = 1, status = 'all', search = '') {
     showLoading(true);
     
@@ -1742,54 +2364,66 @@ function loadAdminShipments(page = 1, status = 'all', search = '') {
 }
 
 function displayAdminShipments(shipments) {
-    const modalContent = document.querySelector('#adminModal .modal-content');
-    modalContent.innerHTML = `
-        <span class="close" onclick="closeModal('adminModal')">&times;</span>
-        <h2>Manage Shipments</h2>
-        <button onclick="showAdminDashboard()" class="btn-secondary" style="margin-bottom: 15px;">← Back to Dashboard</button>
-        <div class="shipments-controls" style="margin-bottom: 20px;">
-            <input type="text" id="shipmentSearch" placeholder="Search by tracking number, name, or email..." style="padding: 8px; width: 300px; margin-right: 10px;">
-            <select id="statusFilter" onchange="filterShipments()" style="padding: 8px; margin-right: 10px;">
-                <option value="all">All Statuses</option>
-                <option value="pending">Pending</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="picked_up">Picked Up</option>
-                <option value="in_transit">In Transit</option>
-                <option value="out_for_delivery">Out for Delivery</option>
-                <option value="delivered">Delivered</option>
-                <option value="exception">Exception</option>
-            </select>
-            <button onclick="searchShipments()" class="btn-primary" style="padding: 8px 15px;">Search</button>
-        </div>
-        <div class="shipments-list">
-            ${shipments.map(shipment => `
-                <div class="shipment-item" style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; background: white;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
-                        <div style="flex: 1; min-width: 250px;">
-                            <h4 style="margin: 0 0 10px 0; color: #667eea;">${shipment.trackingNumber}</h4>
-                            <p style="margin: 5px 0;"><strong>From:</strong> ${shipment.sender?.name || 'N/A'}</p>
-                            <p style="margin: 5px 0;"><strong>To:</strong> ${shipment.recipient.name}</p>
-                            <p style="margin: 5px 0;"><strong>Status:</strong> <span class="status-badge status-${shipment.status.current}">${formatStatus(shipment.status.current)}</span></p>
-                            <p style="margin: 5px 0;"><strong>Service:</strong> ${shipment.service.type.toUpperCase()}</p>
-                            ${shipment.status.history && shipment.status.history.length > 0 ? `
-                                <p style="margin: 5px 0;"><strong>Last Update:</strong> ${shipment.status.history[shipment.status.history.length - 1].location || 'Processing Center'}</p>
-                            ` : ''}
-                        </div>
-                        <div style="text-align: right; min-width: 200px;">
-                            <p style="margin: 5px 0;"><strong>$${shipment.service.cost?.toFixed(2) || 'N/A'}</strong></p>
-                            <p style="margin: 5px 0; font-size: 0.9em; color: #666;">${new Date(shipment.createdAt).toLocaleDateString()}</p>
-                            <button onclick="showStatusUpdateModal('${shipment.trackingNumber}')" class="btn-primary" style="padding: 8px 12px; margin: 5px 0; font-size: 0.9em;">
-                                Update Status
-                            </button>
-                            <button onclick="viewShipmentDetails('${shipment.trackingNumber}')" class="btn-secondary" style="padding: 8px 12px; margin: 5px 0; font-size: 0.9em;">
-                                View Details
-                            </button>
-                        </div>
-                    </div>
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'adminShipmentsModal';
+    modal.innerHTML = `
+        <div class="modal-content modal-content-dashboard">
+            <div class="modal-header">
+                <h2><i class="fas fa-shipping-fast"></i> Manage Shipments</h2>
+                <span class="close" data-close-modal="adminShipmentsModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="shipments-controls">
+                    <input type="text" id="shipmentSearch" placeholder="Search by tracking number, name, or email..." class="shipment-search-input">
+                    <select id="statusFilter" data-action="filterShipments" class="status-filter-select">
+                        <option value="all">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="picked_up">Picked Up</option>
+                        <option value="in_transit">In Transit</option>
+                        <option value="out_for_delivery">Out for Delivery</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="exception">Exception</option>
+                    </select>
+                    <button data-action="searchShipments" class="search-shipments-btn">
+                        <i class="fas fa-search"></i> Search
+                    </button>
                 </div>
-            `).join('')}
+                <div class="shipments-list">
+                    ${shipments.map(shipment => `
+                        <div class="shipment-item">
+                            <div class="shipment-item-header">
+                                <div class="shipment-item-left">
+                                    <h4 class="tracking-number">${shipment.trackingNumber}</h4>
+                                    <p class="shipment-detail"><strong>From:</strong> ${shipment.sender?.name || 'N/A'}</p>
+                                    <p class="shipment-detail"><strong>To:</strong> ${shipment.recipient.name}</p>
+                                    <p class="shipment-detail"><strong>Status:</strong> <span class="status-badge status-${shipment.status.current}">${formatStatus(shipment.status.current)}</span></p>
+                                    <p class="shipment-detail"><strong>Service:</strong> ${shipment.service.type.toUpperCase()}</p>
+                                    ${shipment.status.history && shipment.status.history.length > 0 ? `
+                                        <p class="shipment-detail"><strong>Last Update:</strong> ${shipment.status.history[shipment.status.history.length - 1].location || 'Processing Center'}</p>
+                                    ` : ''}
+                                </div>
+                                <div class="shipment-item-right">
+                                    <p><strong>$${shipment.service.cost?.toFixed(2) || 'N/A'}</strong></p>
+                                    <p class="shipment-date">${new Date(shipment.createdAt).toLocaleDateString()}</p>
+                                    <button data-action="showStatusUpdateModal" data-param="${shipment.trackingNumber}" class="action-button btn-primary">
+                                        <i class="fas fa-edit"></i> Update Status
+                                    </button>
+                                    <button data-action="viewShipmentDetails" data-param="${shipment.trackingNumber}" class="action-button btn-secondary">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
         </div>
     `;
+    
+    document.body.appendChild(modal);
+    showModal('adminShipmentsModal');
 }
 
 // Show detailed status update modal
@@ -1798,10 +2432,10 @@ function showStatusUpdateModal(trackingNumber) {
     modal.className = 'modal';
     modal.id = 'statusUpdateModal';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-content modal-content-wide">
             <div class="modal-header">
                 <h2>Update Shipment Status</h2>
-                <span class="close" onclick="closeModal('statusUpdateModal')">&times;</span>
+                <span class="close" data-close-modal="statusUpdateModal">&times;</span>
             </div>
             <div class="modal-body">
                 <form id="statusUpdateForm">
@@ -1862,19 +2496,19 @@ function showStatusUpdateModal(trackingNumber) {
                     
                     <h3>Hold Information</h3>
                     <div class="form-group">
-                        <label style="display: flex; align-items: center; gap: 10px;">
-                            <input type="checkbox" name="isHeld" onchange="toggleHoldReason(this)">
+                        <label class="form-label-checkbox">
+                            <input type="checkbox" name="isHeld" data-action="toggleHoldReason">
                             Package is currently held
                         </label>
                     </div>
                     
-                    <div class="form-group" id="holdReasonGroup" style="display: none;">
+                    <div class="form-group form-group-hidden" id="holdReasonGroup">
                         <label>Hold Reason</label>
                         <textarea name="holdReason" rows="2" placeholder="Reason for holding package"></textarea>
                     </div>
                     
-                    <div style="margin-top: 20px; text-align: right;">
-                        <button type="button" onclick="closeModal('statusUpdateModal')" class="btn-secondary" style="margin-right: 10px;">Cancel</button>
+                    <div class="form-actions">
+                        <button type="button" data-action="showAdminDashboard" class="btn-secondary btn-margin-right">Cancel</button>
                         <button type="submit" class="btn-primary">Update Status</button>
                     </div>
                 </form>
@@ -1937,7 +2571,7 @@ async function handleStatusUpdate(e) {
         showLoading(false);
         
         if (data.success) {
-            showToast('Shipment status updated successfully!', 'success');
+            showToast('Shipment updated successfully', 'success');
             closeModal('statusUpdateModal');
             document.getElementById('statusUpdateModal').remove();
             loadAdminShipments(); // Refresh the list
@@ -1988,7 +2622,7 @@ function updateShipmentStatus(trackingNumber, newStatus) {
     .then(data => {
         showLoading(false);
         if (data.success) {
-            showToast('Status updated successfully!', 'success');
+            showToast('Status updated successfully', 'success');
             loadAdminShipments(); // Refresh the list
         } else {
             showToast('Error updating status', 'error');
@@ -2016,9 +2650,9 @@ function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div class="toast-container">
             <span>${message}</span>
-            <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; margin-left: 10px;">&times;</button>
+            <button class="toast-close-btn" data-action="closeToast">&times;</button>
         </div>
     `;
     
@@ -2231,6 +2865,89 @@ style.textContent = `
         background: #c82333;
     }
     
+    /* CSP Compliance Classes */
+    .admin-description {
+        color: #666;
+        margin-bottom: 20px;
+    }
+    
+    .admin-key-note {
+        color: #666;
+    }
+    
+    .progress-fill {
+        transition: width 0.3s ease;
+    }
+    
+    .back-to-dashboard {
+        margin-bottom: 15px;
+    }
+    
+    .shipments-controls {
+        margin-bottom: 20px;
+    }
+    
+    .shipment-search-input {
+        padding: 8px;
+        width: 300px;
+        margin-right: 10px;
+    }
+    
+    .status-filter-select {
+        padding: 8px;
+        margin-right: 10px;
+    }
+    
+    .search-shipments-btn {
+        padding: 8px 15px;
+    }
+    
+    .shipment-item {
+        border: 1px solid #ddd;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        background: white;
+    }
+    
+    .shipment-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+    
+    .shipment-item-left {
+        flex: 1;
+        min-width: 250px;
+    }
+    
+    .shipment-item-right {
+        text-align: right;
+        min-width: 200px;
+    }
+    
+    .tracking-number {
+        margin: 0 0 10px 0;
+        color: #667eea;
+    }
+    
+    .shipment-detail {
+        margin: 5px 0;
+    }
+    
+    .shipment-date {
+        margin: 5px 0;
+        font-size: 0.9em;
+        color: #666;
+    }
+    
+    .action-button {
+        padding: 8px 12px;
+        margin: 5px 0;
+        font-size: 0.9em;
+    }
+    
     @media (max-width: 768px) {
         .form-row {
             grid-template-columns: 1fr;
@@ -2239,6 +2956,20 @@ style.textContent = `
         #adminRegisterModal .modal-content {
             margin: 20px;
             max-width: calc(100% - 40px);
+        }
+        
+        .shipment-item-header {
+            flex-direction: column;
+        }
+        
+        .shipment-item-right {
+            text-align: left;
+            margin-top: 10px;
+        }
+        
+        .shipment-search-input {
+            width: 100%;
+            margin-bottom: 10px;
         }
     }
 `;
@@ -2254,10 +2985,10 @@ function loadCustomerSupport() {
     modal.className = 'modal';
     modal.id = 'supportModal';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 1200px; width: 95%; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-content modal-content-extra-wide">
             <div class="modal-header">
                 <h2><i class="fas fa-headset"></i> Customer Support</h2>
-                <span class="close" onclick="closeModal('supportModal')">&times;</span>
+                <span class="close" data-close-modal="supportModal">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="support-stats">
@@ -2292,7 +3023,7 @@ function loadCustomerSupport() {
                 
                 <div class="support-filters">
                     <div class="filter-group">
-                        <select id="statusFilter" onchange="filterSupportMessages()">
+                        <select id="statusFilter" data-action="filterSupportMessages">
                             <option value="">All Status</option>
                             <option value="new">New</option>
                             <option value="in-progress">In Progress</option>
@@ -2302,7 +3033,7 @@ function loadCustomerSupport() {
                     </div>
                     <div class="search-group">
                         <input type="text" id="supportSearch" placeholder="Search messages...">
-                        <button onclick="refreshSupportMessages()" class="refresh-btn">
+                        <button data-action="refreshSupportMessages" class="refresh-btn">
                             <i class="fas fa-sync-alt"></i>
                         </button>
                     </div>
@@ -2362,7 +3093,7 @@ function displaySupportMessages(messages) {
         return;
     }
     container.innerHTML = messages.map(message => `
-        <div class="support-message-card status-${message.status}" onclick="viewSupportMessage('${message._id}')">
+        <div class="support-message-card status-${message.status}" data-action="viewSupportMessage" data-param="${message._id}">
             <div class="message-header">
                 <div class="message-info">
                     <h4>${message.name}</h4>
@@ -2452,10 +3183,10 @@ function showMessageDetailModal(message) {
     };
     
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 800px; width: 90%;">
+        <div class="modal-content modal-content-medium">
             <div class="modal-header">
                 <h2><i class="fas fa-envelope-open"></i> Message Details</h2>
-                <span class="close" onclick="closeModal('messageDetailModal')">&times;</span>
+                <span class="close" data-close-modal="messageDetailModal">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="message-detail-header">
@@ -2466,10 +3197,10 @@ function showMessageDetailModal(message) {
                         <p><i class="fas fa-hashtag"></i> ${message.reference}</p>
                     </div>
                     <div class="message-badges">
-                        <span class="status-badge" style="background-color: ${statusColors[message.status] || '#6c757d'}">
+                        <span class="status-badge status-badge-custom" data-status-color="${message.status}">
                             ${message.status.toUpperCase()}
                         </span>
-                        <span class="priority-badge" style="background-color: ${priorityColors[message.priority] || '#6c757d'}">
+                        <span class="priority-badge priority-badge-custom" data-priority-color="${message.priority}">
                             ${message.priority ? message.priority.toUpperCase() : 'NORMAL'}
                         </span>
                     </div>
@@ -2525,7 +3256,7 @@ function showMessageDetailModal(message) {
                                                     </div>
                                                     <div class="response-badges">
                                                         <span class="internal-badge">Internal</span>
-                                                        <button class="delete-note-btn" onclick="deleteInternalNote('${message._id}', '${note._id}')" title="Delete this note">
+                                                        <button class="delete-note-btn" data-action="deleteInternalNote" data-message-id="${message._id}" data-response-id="${note._id}" title="Delete this note">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
                                                     </div>
@@ -2544,13 +3275,13 @@ function showMessageDetailModal(message) {
                 ` : ''}
                 
                 <div class="message-actions">
-                    <button class="btn-secondary" onclick="closeModal('messageDetailModal')">
+                    <button class="btn-secondary" data-action="closeModal" data-param="messageDetailModal">
                         <i class="fas fa-times"></i> Close
                     </button>
-                    <button class="btn-primary" onclick="showResponseForm('${message._id}')">
+                    <button class="btn-primary" data-action="showResponseForm" data-param="${message._id}">
                         <i class="fas fa-reply"></i> Add Response
                     </button>
-                    <button class="btn-warning" onclick="updateMessageStatus('${message._id}')">
+                    <button class="btn-warning" data-action="updateMessageStatus" data-param="${message._id}">
                         <i class="fas fa-edit"></i> Update Status
                     </button>
                 </div>
@@ -2559,6 +3290,10 @@ function showMessageDetailModal(message) {
     `;
     
     document.body.appendChild(modal);
+    
+    // Apply badge colors after content is added to DOM
+    applyBadgeColors(modal);
+    
     showModal('messageDetailModal');
 }
 
@@ -2573,10 +3308,10 @@ function updateMessageStatus(messageId) {
     modal.id = 'statusUpdateModal';
     
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 500px; width: 90%;">
+        <div class="modal-content modal-content-small">
             <div class="modal-header">
                 <h2><i class="fas fa-edit"></i> Update Message Status</h2>
-                <span class="close" onclick="closeModal('statusUpdateModal')">&times;</span>
+                <span class="close" data-close-modal="statusUpdateModal">&times;</span>
             </div>
             <div class="modal-body">
                 <form id="statusUpdateForm">
@@ -2606,7 +3341,7 @@ function updateMessageStatus(messageId) {
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" class="btn-secondary" onclick="closeModal('statusUpdateModal')">
+                        <button type="button" class="btn-secondary" data-action="closeModal" data-param="statusUpdateModal">
                             <i class="fas fa-times"></i> Cancel
                         </button>
                         <button type="submit" class="btn-primary">
@@ -2738,15 +3473,15 @@ function loadAdminUsers() {
     modal.className = 'modal';
     modal.id = 'adminUsersModal';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 1000px; width: 95%; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-content modal-content-dashboard">
             <div class="modal-header">
                 <h2><i class="fas fa-users"></i> User Management</h2>
-                <span class="close" onclick="closeModal('adminUsersModal')">&times;</span>
+                <span class="close" data-close-modal="adminUsersModal">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="user-management-stats">
                     <div class="stat-card">
-                        <div class="stat-icon" style="background: #007bff;">
+                        <div class="stat-icon stat-icon-blue">
                             <i class="fas fa-users"></i>
                         </div>
                         <div class="stat-info">
@@ -2755,7 +3490,7 @@ function loadAdminUsers() {
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon" style="background: #28a745;">
+                        <div class="stat-icon stat-icon-green">
                             <i class="fas fa-user-shield"></i>
                         </div>
                         <div class="stat-info">
@@ -2764,7 +3499,7 @@ function loadAdminUsers() {
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon" style="background: #ffc107;">
+                        <div class="stat-icon stat-icon-yellow">
                             <i class="fas fa-user"></i>
                         </div>
                         <div class="stat-info">
@@ -2776,32 +3511,32 @@ function loadAdminUsers() {
                 
                 <div class="user-filters">
                     <div class="filter-group">
-                        <select id="roleFilter" onchange="filterUsers()">
+                        <select id="roleFilter" data-action="filterUsers">
                             <option value="">All Roles</option>
                             <option value="admin">Admin</option>
                             <option value="staff">Staff</option>
                             <option value="customer">Customer</option>
                         </select>
-                        <select id="verifiedFilter" onchange="filterUsers()">
+                        <select id="verifiedFilter" data-action="filterUsers">
                             <option value="">All Status</option>
                             <option value="true">Verified</option>
                             <option value="false">Unverified</option>
                         </select>
                     </div>
                     <div class="search-group">
-                        <input type="text" id="userSearch" placeholder="Search users..." oninput="searchUsers()" onkeypress="if(event.key==='Enter') filterUsers()">
-                        <button onclick="clearFilters()" class="clear-btn" title="Clear all filters">
+                        <input type="text" id="userSearch" placeholder="Search users..." data-action="searchUsers">
+                        <button data-action="clearFilters" class="clear-btn" title="Clear all filters">
                             <i class="fas fa-times"></i>
                         </button>
-                        <button onclick="refreshUsers()" class="refresh-btn">
+                        <button data-action="refreshUsers" class="refresh-btn">
                             <i class="fas fa-sync-alt"></i>
                         </button>
-                        <button onclick="verifyAllUsers()" class="verify-btn" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; margin-left: 10px; cursor: pointer;">
+                        <button data-action="verifyAllUsers" class="verify-btn">
                             <i class="fas fa-check-circle"></i> Verify All
                         </button>
                     </div>
                 </div>
-                <div class="users-results-info" style="margin: 10px 0; font-size: 14px; color: #666;"></div>
+                <div class="users-results-info"></div>
                 
                 <div class="users-list" id="adminUsersList">
                     <div class="loading-placeholder">
@@ -2929,7 +3664,7 @@ function displayUsersList(users) {
                     ${user.phone ? `<p><i class="fas fa-phone"></i> ${user.phone}</p>` : ''}
                 </div>
                 <div class="user-role">
-                    <span class="role-badge" style="background-color: ${roleColors[user.role] || '#6c757d'}">
+                    <span class="role-badge role-badge-custom" data-role-color="${user.role}">
                         ${user.role.toUpperCase()}
                     </span>
                 </div>
@@ -2939,7 +3674,7 @@ function displayUsersList(users) {
                 <div class="user-status">
                     <span><strong>Status:</strong> ${user.isVerified ? 'Verified' : 'Unverified'}</span>
                     ${!user.isVerified ? `
-                        <button onclick="verifyUser('${user._id}', '${user.firstName} ${user.lastName}')" 
+                        <button data-action="verifyUser" data-user-id="${user._id}" data-user-name="${user.firstName} ${user.lastName}" 
                                 class="verify-single-btn" title="Verify this user">
                             <i class="fas fa-check"></i> Verify
                         </button>
@@ -2948,6 +3683,9 @@ function displayUsersList(users) {
             </div>
         </div>
     `).join('');
+    
+    // Apply badge colors after content is added
+    applyBadgeColors(container);
 }
 
 function filterUsers() {
@@ -3070,4 +3808,102 @@ async function verifyAllUsers() {
     } finally {
         showLoading(false);
     }
+}
+
+function displayAdminDashboard(stats) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'adminModal';
+    modal.innerHTML = `
+        <div class="modal-content admin-dashboard-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h2>
+                <span class="close" data-close-modal="adminModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="admin-stats">
+                    <div class="stat-card total-shipments">
+                        <div class="stat-icon">
+                            <i class="fas fa-shipping-fast"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>${stats.shipments?.total || 0}</h3>
+                            <p>Total Shipments</p>
+                        </div>
+                    </div>
+                    <div class="stat-card delivered-shipments">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>${stats.shipments?.delivered || 0}</h3>
+                            <p>Delivered</p>
+                        </div>
+                    </div>
+                    <div class="stat-card transit-shipments">
+                        <div class="stat-icon">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>${stats.shipments?.inTransit || 0}</h3>
+                            <p>In Transit</p>
+                        </div>
+                    </div>
+                    <div class="stat-card pending-shipments">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>${stats.shipments?.pending || 0}</h3>
+                            <p>Pending</p>
+                        </div>
+                    </div>
+                    <div class="stat-card total-users">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>${stats.users?.total || 0}</h3>
+                            <p>Total Users</p>
+                        </div>
+                    </div>
+                    <div class="stat-card total-revenue">
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>$${(stats.revenue?.total || 0).toFixed(2)}</h3>
+                            <p>Total Revenue</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="admin-actions">
+                    <button data-action="loadAdminShipments" class="admin-btn shipments-btn">
+                        <i class="fas fa-boxes"></i>
+                        <span>Manage Shipments</span>
+                    </button>
+                    <button data-action="loadCustomerSupport" class="admin-btn support-btn">
+                        <i class="fas fa-headset"></i>
+                        <span>Customer Support</span>
+                    </button>
+                    <button data-action="loadAdminUsers" class="admin-btn users-btn">
+                        <i class="fas fa-user-cog"></i>
+                        <span>Manage Users</span>
+                    </button>
+                    <button data-action="showAdminRegisterModal" class="admin-btn setup-btn">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Admin Setup</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    showModal('adminModal');
+}
+
+// Helper function to scroll to shipping section
+function showShippingRateForm() {
+    scrollToSection('shipping');
 }

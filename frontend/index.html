@@ -39,7 +39,7 @@
                     <a href="#contact" class="nav-link">Contact</a>
                 </li>
                 <li class="nav-item">
-                    <button class="btn-login" onclick="showLoginModal()">Login</button>
+                    <button class="btn-login" id="loginBtn">Login</button>
                 </li>
             </ul>
             <div class="hamburger">
@@ -57,8 +57,8 @@
                 <h1 class="hero-title">Fast, Reliable Shipping Worldwide</h1>
                 <p class="hero-subtitle">Experience seamless package delivery with real-time tracking and competitive rates</p>
                 <div class="hero-actions">
-                    <button class="btn-primary" onclick="scrollToSection('shipping')">Ship Now</button>
-                    <button class="btn-secondary" onclick="scrollToSection('tracking')">Track Package</button>
+                    <button class="btn-primary" id="shipNowBtn">Ship Now</button>
+                    <button class="btn-secondary" id="trackNowBtn">Track Package</button>
                 </div>
             </div>
             <div class="hero-image">
@@ -74,7 +74,7 @@
                 <h3>Track Your Package</h3>
                 <div class="track-input-group">
                     <input type="text" id="quickTrackInput" placeholder="Enter tracking number" maxlength="20">
-                    <button onclick="quickTrack()" class="btn-track">
+                    <button id="quickTrackBtn" class="btn-track">
                         <i class="fas fa-search"></i>
                         Track
                     </button>
@@ -159,13 +159,13 @@
                 <div class="tracking-form-container">
                     <div class="tracking-form">
                         <input type="text" id="trackingInput" placeholder="Enter tracking number (e.g., FR1234567890)" maxlength="20">
-                        <button onclick="trackPackage()" class="btn-primary">
+                        <button id="trackPackageBtn" class="btn-primary">
                             <i class="fas fa-search"></i>
                             Track Package
                         </button>
                     </div>
                 </div>
-                <div id="trackingResults" class="tracking-results" style="display: none;">
+                <div id="trackingResults" class="tracking-results hidden-element">
                     <!-- Tracking results will be displayed here -->
                 </div>
             </div>
@@ -229,7 +229,7 @@
                         </div>
                         <button type="submit" class="btn-primary">Calculate Rate</button>
                     </form>
-                    <div id="rateResults" class="rate-results" style="display: none;">
+                    <div id="rateResults" class="rate-results hidden-element">
                         <!-- Rate results will be displayed here -->
                     </div>
                 </div>
@@ -243,7 +243,7 @@
                         <li><i class="fas fa-check"></i> Access shipping history</li>
                         <li><i class="fas fa-check"></i> Bulk shipping options</li>
                     </ul>
-                    <button class="btn-secondary" onclick="showRegisterModal()">Create Account</button>
+                    <button class="btn-secondary" id="createAccountBtn">Create Account</button>
                 </div>
             </div>
         </div>
@@ -448,7 +448,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Login to Your Account</h3>
-                <span class="close" onclick="closeModal('loginModal')">&times;</span>
+                <span class="close" data-modal="loginModal">&times;</span>
             </div>
             <div class="modal-body">
                 <form id="loginForm">
@@ -463,7 +463,7 @@
                     <button type="submit" class="btn-primary full-width">Login</button>
                 </form>
                 <div class="modal-footer">
-                    <p>Don't have an account? <a href="javascript:void(0)" onclick="showRegisterModal(); return false;">Register here</a></p>
+                    <p>Don't have an account? <a href="#" id="showRegisterLink">Register here</a></p>
                 </div>
             </div>
         </div>
@@ -474,7 +474,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Create Your Account</h3>
-                <span class="close" onclick="closeModal('registerModal')">&times;</span>
+                <span class="close" data-modal="registerModal">&times;</span>
             </div>
             <div class="modal-body">
                 <form id="registerForm">
@@ -511,7 +511,7 @@
                         </div>
                         <div class="form-group">
                             <label for="registerState">State</label>
-                            <input type="text" id="registerState" name="address.state" maxlength="2" required>
+                            <input type="text" id="registerState" name="address.state" placeholder="e.g., New York or NY" required>
                         </div>
                         <div class="form-group">
                             <label for="registerZip">ZIP Code</label>
@@ -521,20 +521,22 @@
                     <button type="submit" class="btn-primary full-width">Create Account</button>
                 </form>
                 <div class="modal-footer">
-                    <p>Already have an account? <a href="javascript:void(0)" onclick="showLoginModal(); return false;">Login here</a></p>
+                    <p>Already have an account? <a href="#" id="showLoginLink">Login here</a></p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Loading Spinner -->
-    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+    <div id="loadingSpinner" class="loading-spinner hidden-element">
         <div class="spinner"></div>
     </div>
 
     <!-- Toast Notifications -->
     <div id="toastContainer" class="toast-container"></div>
 
+    <!-- CRITICAL: Load extension protection FIRST -->
+    <script src="js/extension-protection.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
