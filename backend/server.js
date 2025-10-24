@@ -38,6 +38,11 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files from frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+// Explicit routes for static assets to ensure they load properly
+app.use('/css', express.static(path.join(__dirname, '../frontend/css')));
+app.use('/js', express.static(path.join(__dirname, '../frontend/js')));
+app.use('/images', express.static(path.join(__dirname, '../frontend/images')));
+
 // Database connection with improved error handling and fallback
 const connectDB = async () => {
   try {
