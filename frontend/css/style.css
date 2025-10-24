@@ -2126,7 +2126,7 @@ p {
 
 .tracking-info h3 {
     margin: 0 0 8px 0;
-    color: #1f2937;
+    color: #000000;
     font-size: 1.2rem;
     font-weight: 700;
     display: flex;
@@ -4430,9 +4430,10 @@ p {
 }
 
 .status-badge.pending {
-    background: #fef3c7;
-    color: #92400e;
-    border-color: #f59e0b;
+    background: #ff6b35;
+    color: #ffffff;
+    border-color: #ff4500;
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
 }
 
 .status-badge.in-transit {
@@ -4453,10 +4454,10 @@ p {
     border-color: #ef4444;
 }
 
-/* Enhanced Detail Values */
+/* Enhanced Detail Values for Customer Shipments */
 .detail-value {
     font-size: 1rem;
-    color: #1f2937;
+    color: #000000;
     font-weight: 600;
     line-height: 1.4;
 }
@@ -4466,7 +4467,7 @@ p {
     font-family: 'Courier New', monospace;
     font-size: 1.1rem;
     font-weight: 700;
-    color: #667eea;
+    color: #000000;
     letter-spacing: 1px;
     background: #f3f4f6;
     padding: 4px 8px;
