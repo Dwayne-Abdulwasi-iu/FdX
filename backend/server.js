@@ -37,17 +37,48 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files from frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// Database connection
+// Database connection with improved error handling and fallback
 const connectDB = async () => {
   try {
-  const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/fedex_shipping', {
+    // Simplified mongoose options
+    const mongooseOptions = {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-    });
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+    };
+
+    // Try MongoDB Atlas first
+    let conn;
+    try {
+      console.log('Attempting to connect to MongoDB Atlas...');
+      conn = await mongoose.connect(process.env.MONGODB_URI, mongooseOptions);
+      console.log(`✅ MongoDB Atlas Connected: ${conn.connection.host}`);
+    } catch (atlasError) {
+      console.log('❌ MongoDB Atlas connection failed, trying local MongoDB...');
+      
+      // Fallback to local MongoDB
+      const localURI = 'mongodb://localhost:27017/fedex-shipping';
+      conn = await mongoose.connect(localURI, mongooseOptions);
+      console.log(`✅ Local MongoDB Connected: ${conn.connection.host}`);
+      console.log('💡 Note: Using local MongoDB. For production, ensure MongoDB Atlas connectivity.');
+    }
+    
   } catch (error) {
-    console.error('Database connection error:', error);
-    process.exit(1);
+    console.error('❌ Database connection failed:', error.message);
+    console.log(`
+� SERVER IS RUNNING WITHOUT DATABASE
+✅ Frontend available at: http://localhost:3002
+⚠️  Some features requiring database will not work:
+   - User registration/login
+   - Package tracking
+   - Admin dashboard data
+
+🔧 To fix database connection:
+   1. For Render deployment: Use MongoDB Atlas
+   2. For local development: Install MongoDB locally
+   3. Frontend testing: Works without database
+    `);
   }
 };
 
