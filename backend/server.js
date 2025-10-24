@@ -25,7 +25,8 @@ app.use(cors({
     process.env.CORS_ORIGIN || 'http://localhost:3002',
     'http://localhost:3000',
     'http://127.0.0.1:5500',
-    'http://localhost:5500'
+    'http://localhost:5500',
+    'https://fedex-shipping.onrender.com'
   ],
   credentials: true
 }));
@@ -98,16 +99,6 @@ app.use('/api/tracking', trackingRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/contact', contactRoutes);
 
-// Serve frontend for all other routes
-app.get('*', (req, res) => {
-  // Log unusual requests for debugging
-  if (req.url.includes('%22') || req.url.includes('undefined')) {
-    console.log('Unusual URL request:', req.url, 'from:', req.headers.referer || 'direct');
-  }
-  
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
-});
-
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -118,12 +109,28 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ 
-    success: false, 
-    message: 'Route not found' 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    success: true, 
+    message: 'FedeX Shipping Server is running',
+    timestamp: new Date().toISOString()
   });
+});
+
+// Serve frontend for all other routes (catch-all route must be last)
+app.get('*', (req, res) => {
+  // Log unusual requests for debugging
+  if (req.url.includes('%22') || req.url.includes('undefined')) {
+    console.log('Unusual URL request:', req.url, 'from:', req.headers.referer || 'direct');
+  }
+  
+  try {
+    res.sendFile(path.join(__dirname, '../frontend/index.html'));
+  } catch (error) {
+    console.error('Error serving frontend:', error);
+    res.status(500).send('Server Error: Unable to serve frontend');
+  }
 });
 
 const PORT = process.env.PORT || 3002;
