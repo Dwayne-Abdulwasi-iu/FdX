@@ -4333,3 +4333,80 @@ p {
     font-weight: bold;
     color: white;
 }
+
+/* Legal Pages Styling */
+.legal-container {
+    max-width: 800px;
+    margin: 100px auto 60px;
+    padding: 40px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.legal-content h1 {
+    color: #2c3e50;
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    border-bottom: 3px solid #667eea;
+    padding-bottom: 15px;
+}
+
+.last-updated {
+    color: #6c757d;
+    font-style: italic;
+    margin-bottom: 30px;
+    font-size: 0.9em;
+}
+
+.legal-content section {
+    margin-bottom: 30px;
+}
+
+.legal-content h2 {
+    color: #34495e;
+    font-size: 1.4em;
+    margin-bottom: 15px;
+    margin-top: 25px;
+}
+
+.legal-content p {
+    line-height: 1.6;
+    margin-bottom: 15px;
+    color: #555;
+}
+
+.legal-content ul {
+    margin: 15px 0;
+    padding-left: 25px;
+}
+
+.legal-content li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+    color: #555;
+}
+
+.legal-content a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.legal-content a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .legal-container {
+        margin: 80px 15px 40px;
+        padding: 25px 15px;
+    }
+    
+    .legal-content h1 {
+        font-size: 2em;
+    }
+    
+    .legal-content h2 {
+        font-size: 1.2em;
+    }
+}
