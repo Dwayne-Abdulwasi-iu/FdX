@@ -1358,7 +1358,7 @@ function proceedToShip(service, cost) {
                 console.error('Shipment creation failed:', data);
                 if (data.errors && data.errors.length > 0) {
                     const errorMessages = data.errors.map(err => err.msg).join(', ');
-                    showShipmentErrorNotification(`Validation errors: ${errorMessages}`);
+                    showShipmentErrorNotification(errorMessages);
                 } else {
                     showShipmentErrorNotification(data.message || 'Unable to create shipment. Please try again.');
                 }
