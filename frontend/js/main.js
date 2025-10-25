@@ -501,8 +501,8 @@ function initializeEventListeners() {
                     filterShipments();
                     break;
                 case 'toggleHoldReason':
-                    toggleHoldReason(target);
-                    break;
+                    // Don't handle click for checkbox, let change event handle it
+                    return;
                 case 'filterSupportMessages':
                     filterSupportMessages();
                     break;
@@ -615,6 +615,12 @@ function initializeEventListeners() {
                     break;
             }
         }
+        
+    });
+    
+    // Separate change event handler for checkboxes
+    document.addEventListener('change', (e) => {
+        const target = e.target;
         
         // Handle checkbox for hold reason
         if (target.type === 'checkbox' && target.hasAttribute('data-action')) {
