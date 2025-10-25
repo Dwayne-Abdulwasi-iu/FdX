@@ -1350,22 +1350,23 @@ function proceedToShip(service, cost) {
             showLoading(false);
             
             if (data.success) {
-                showToast(`Shipment created! Tracking: ${data.shipment.trackingNumber}`, 'success');
+                // Create enhanced success notification for shipment creation
+                showShipmentSuccessNotification(data.shipment.trackingNumber);
                 closeModal('shipmentModal');
                 modal.remove();
             } else {
                 console.error('Shipment creation failed:', data);
                 if (data.errors && data.errors.length > 0) {
                     const errorMessages = data.errors.map(err => err.msg).join(', ');
-                    showToast(`Validation errors: ${errorMessages}`, 'error');
+                    showShipmentErrorNotification(`Validation errors: ${errorMessages}`);
                 } else {
-                    showToast(data.message || 'Error creating shipment', 'error');
+                    showShipmentErrorNotification(data.message || 'Unable to create shipment. Please try again.');
                 }
             }
         } catch (error) {
             showLoading(false);
             console.error('Shipment creation error:', error);
-            showToast('Error creating shipment', 'error');
+            showShipmentErrorNotification('Network error occurred. Please check your connection and try again.');
         }
     });
 }
@@ -2925,6 +2926,69 @@ function showToast(message, type = 'info') {
             toast.remove();
         }
     }, 5000);
+}
+
+// Enhanced shipment success notification
+function showShipmentSuccessNotification(trackingNumber) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = 'toast shipment-success';
+    toast.innerHTML = `
+        <div class="toast-container">
+            <div class="shipment-notification-content">
+                <div class="shipment-icon">📦</div>
+                <div class="shipment-details">
+                    <h4>🎉 Shipment Created Successfully!</h4>
+                    <p><strong>Tracking Number:</strong></p>
+                    <div class="tracking-number-display">${trackingNumber}</div>
+                    <p class="shipment-note">You can track your package using this number</p>
+                </div>
+            </div>
+            <button class="toast-close-btn" data-action="closeToast">&times;</button>
+        </div>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto remove after 8 seconds (longer for success)
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+    }, 8000);
+}
+
+// Enhanced shipment error notification
+function showShipmentErrorNotification(errorMessage) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = 'toast shipment-error';
+    toast.innerHTML = `
+        <div class="toast-container">
+            <div class="shipment-notification-content">
+                <div class="shipment-icon">❌</div>
+                <div class="shipment-details">
+                    <h4>Shipment Creation Failed</h4>
+                    <p class="error-message">${errorMessage}</p>
+                    <p class="shipment-note">Please check your information and try again</p>
+                </div>
+            </div>
+            <button class="toast-close-btn" data-action="closeToast">&times;</button>
+        </div>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto remove after 7 seconds
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+    }, 7000);
 }
 
 // Scroll animations (intersection observer)

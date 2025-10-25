@@ -1724,6 +1724,100 @@ p {
     color: #f59e0b;
 }
 
+/* Enhanced Shipment Notification Styles */
+.toast.shipment-success {
+    border-left-color: #10b981;
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    color: #065f46;
+    border-radius: 12px;
+    padding: 16px 20px;
+    min-width: 350px;
+    max-width: 450px;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
+}
+
+.toast.shipment-error {
+    border-left-color: #ef4444;
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    color: #991b1b;
+    border-radius: 12px;
+    padding: 16px 20px;
+    min-width: 350px;
+    max-width: 450px;
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.15);
+}
+
+.shipment-notification-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.shipment-icon {
+    font-size: 24px;
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+
+.shipment-details {
+    flex: 1;
+}
+
+.shipment-details h4 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.shipment-details p {
+    margin: 4px 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.tracking-number-display {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 15px;
+    color: #047857;
+    margin: 6px 0;
+    letter-spacing: 1px;
+    word-break: break-all;
+}
+
+.shipment-note {
+    font-style: italic;
+    opacity: 0.8;
+    font-size: 13px !important;
+    margin-top: 8px !important;
+}
+
+.error-message {
+    font-weight: 500;
+    color: #dc2626;
+}
+
+/* Animation for shipment notifications */
+.toast.shipment-success,
+.toast.shipment-error {
+    animation: shipmentNotificationSlide 0.4s ease-out;
+}
+
+@keyframes shipmentNotificationSlide {
+    from {
+        opacity: 0;
+        transform: translateX(100%) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
 @keyframes toastSlideIn {
     from {
         opacity: 0;
