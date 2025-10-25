@@ -826,6 +826,9 @@ function updateAuthUI() {
     // Enable/disable service elements based on authentication
     toggleServiceElements();
     
+    // Show/hide authentication notices based on login status
+    toggleAuthNotices();
+    
     if (isAuthenticated && currentUser && loginBtn) {
         loginBtn.textContent = `Hi, ${currentUser.firstName}`;
         // Remove existing listeners
@@ -836,6 +839,39 @@ function updateAuthUI() {
         loginBtn.removeEventListener('click', showUserMenu);
         loginBtn.addEventListener('click', showLoginModal);
     }
+}
+
+// Function to show/hide authentication notices based on login status
+function toggleAuthNotices() {
+    const authNotices = document.querySelectorAll('.auth-notice, .service-notice');
+    
+    // Handle notice visibility
+    authNotices.forEach(notice => {
+        if (isAuthenticated && currentUser) {
+            // Hide notices when user is logged in
+            notice.style.display = 'none';
+        } else {
+            // Show notices when user is not logged in
+            notice.style.display = 'block';
+        }
+    });
+    
+    // Update input placeholders based on authentication status
+    const trackingInputs = [
+        { id: 'quickTrackInput', authPlaceholder: 'Enter tracking number (login required)', normalPlaceholder: 'Enter tracking number' },
+        { id: 'trackingInput', authPlaceholder: 'Enter tracking number (login required)', normalPlaceholder: 'Enter tracking number (e.g., FR1234567890)' }
+    ];
+    
+    trackingInputs.forEach(input => {
+        const element = document.getElementById(input.id);
+        if (element) {
+            if (isAuthenticated && currentUser) {
+                element.placeholder = input.normalPlaceholder;
+            } else {
+                element.placeholder = input.authPlaceholder;
+            }
+        }
+    });
 }
 
 // Function to enable/disable all service elements based on authentication
