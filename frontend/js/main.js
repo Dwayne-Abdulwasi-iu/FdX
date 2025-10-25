@@ -456,8 +456,8 @@ function initializeEventListeners() {
             closeModal(modalId);
         }
         
-        // Handle buttons with data-action
-        if (target.hasAttribute('data-action')) {
+        // Handle buttons with data-action (but not checkboxes)
+        if (target.hasAttribute('data-action') && target.type !== 'checkbox') {
             e.preventDefault();
             const action = target.getAttribute('data-action');
             const param = target.getAttribute('data-param');
