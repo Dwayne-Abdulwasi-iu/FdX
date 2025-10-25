@@ -469,7 +469,9 @@ function initializeEventListeners() {
                     proceedToShip(service, cost);
                     break;
                 case 'trackPackage':
-                    trackPackage(param);
+                    if (requireAuth('track packages')) {
+                        trackPackage(param);
+                    }
                     break;
                 case 'closeModal':
                     closeModal(param);
@@ -478,7 +480,9 @@ function initializeEventListeners() {
                     showStatusUpdateModal(param);
                     break;
                 case 'viewShipmentDetails':
-                    viewShipmentDetails(param);
+                    if (requireAuth('view shipment details')) {
+                        viewShipmentDetails(param);
+                    }
                     break;
                 case 'searchShipments':
                     searchShipments();
@@ -544,8 +548,10 @@ function initializeEventListeners() {
                     verifyUser(userId, userName);
                     break;
                 case 'createFirstShipment':
-                    closeModal('shipmentsModal');
-                    showShippingRateForm();
+                    if (requireAuth('create shipments')) {
+                        closeModal('shipmentsModal');
+                        showShippingRateForm();
+                    }
                     break;
                 case 'loadAdminShipments':
                     loadAdminShipments();
@@ -694,6 +700,14 @@ function scrollToSection(sectionId) {
         return;
     }
     
+    // Require authentication for service sections
+    const serviceSections = ['shipping', 'tracking', 'ship'];
+    if (serviceSections.includes(sectionId)) {
+        if (!requireAuth('access this service')) {
+            return;
+        }
+    }
+    
     const element = document.getElementById(sectionId);
     if (element) {
         const navbar = document.querySelector('.navbar');
@@ -713,6 +727,16 @@ function scrollToSection(sectionId) {
 function initializeAuth() {
     // Update UI based on auth status
     updateAuthUI();
+}
+
+// Helper function to require authentication for services
+function requireAuth(actionName = 'use this service') {
+    if (!authToken || !currentUser) {
+        showToast(`Please log in to ${actionName}`, 'warning');
+        showLoginModal();
+        return false;
+    }
+    return true;
 }
 
 function checkAuthStatus() {
@@ -874,6 +898,12 @@ function initializeForms() {
 // Rate calculation
 function handleRateCalculation(e) {
     e.preventDefault();
+    
+    // Require authentication for rate calculation
+    if (!requireAuth('calculate shipping rates')) {
+        return;
+    }
+    
     showLoading(true);
     
     const formData = new FormData(e.target);
@@ -942,9 +972,8 @@ function displayRateResults(rate) {
 }
 
 function proceedToShip(service, cost) {
-    if (!currentUser) {
-        showToast('Please login to create a shipment', 'warning');
-        showLoginModal();
+    // Require authentication for creating shipments
+    if (!requireAuth('create shipments')) {
         return;
     }
     
@@ -1088,6 +1117,12 @@ function proceedToShip(service, cost) {
     // Handle form submission
     document.getElementById('shipmentForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        
+        // Double-check authentication before processing
+        if (!requireAuth('create shipments')) {
+            return;
+        }
+        
         showLoading(true);
         
         const formData = new FormData(e.target);
@@ -1176,6 +1211,11 @@ function proceedToShip(service, cost) {
 
 // Tracking functionality
 function quickTrack() {
+    // Require authentication for quick tracking
+    if (!requireAuth('track packages')) {
+        return;
+    }
+    
     const trackingNumber = safeGetValue('quickTrackInput');
     if (!trackingNumber) {
         showToast('Please enter a tracking number', 'warning');
@@ -1185,6 +1225,11 @@ function quickTrack() {
 }
 
 function trackPackage(trackingNumber = null) {
+    // Require authentication for package tracking
+    if (!requireAuth('track packages')) {
+        return;
+    }
+    
     let input = trackingNumber;
     
     // Check if the parameter is an event object and ignore it
@@ -3932,5 +3977,9 @@ function displayAdminDashboard(stats) {
 
 // Helper function to scroll to shipping section
 function showShippingRateForm() {
+    // Require authentication for shipping rate calculation
+    if (!requireAuth('calculate shipping rates')) {
+        return;
+    }
     scrollToSection('shipping');
 }
