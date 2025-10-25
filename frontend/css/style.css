@@ -3988,6 +3988,58 @@ p {
     display: none;
 }
 
+/* Enhanced Hold Reason Styling */
+#holdReasonGroup {
+    transition: all 0.3s ease;
+    border-left: 3px solid #ff6b35;
+    padding-left: 15px;
+    margin-left: 10px;
+    background: #fff8f6;
+    border-radius: 4px;
+    padding: 15px;
+}
+
+#holdReasonGroup.form-group-hidden {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    padding: 0 15px;
+    margin: 0;
+}
+
+#holdReasonGroup textarea {
+    border-color: #ff6b35;
+    background: white;
+}
+
+#holdReasonGroup label {
+    color: #c53030;
+    font-weight: 600;
+}
+
+/* Hold Status Indicators */
+.hold-badge, .hold-indicator {
+    background: #ff6b35;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 8px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.held-item {
+    border-left: 4px solid #ff6b35 !important;
+    background: linear-gradient(135deg, #fff8f6 0%, #fef3f0 100%);
+}
+
 .form-actions {
     margin-top: 20px;
     text-align: right;

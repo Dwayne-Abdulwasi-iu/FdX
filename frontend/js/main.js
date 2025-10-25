@@ -2526,13 +2526,20 @@ function showStatusUpdateModal(trackingNumber) {
 // Toggle hold reason field
 function toggleHoldReason(checkbox) {
     const holdReasonGroup = document.getElementById('holdReasonGroup');
+    const holdReasonTextarea = holdReasonGroup.querySelector('textarea');
+    
+    console.log('Toggling hold reason:', checkbox.checked);
+    
     if (checkbox.checked) {
+        holdReasonGroup.classList.remove('form-group-hidden');
         holdReasonGroup.style.display = 'block';
-        holdReasonGroup.querySelector('textarea').required = true;
+        holdReasonTextarea.required = true;
+        holdReasonTextarea.focus();
     } else {
+        holdReasonGroup.classList.add('form-group-hidden');
         holdReasonGroup.style.display = 'none';
-        holdReasonGroup.querySelector('textarea').required = false;
-        holdReasonGroup.querySelector('textarea').value = '';
+        holdReasonTextarea.required = false;
+        holdReasonTextarea.value = '';
     }
 }
 
@@ -2544,6 +2551,17 @@ async function handleStatusUpdate(e) {
     const formData = new FormData(e.target);
     const trackingNumber = formData.get('trackingNumber');
     
+    // Get hold status
+    const isHeld = formData.get('isHeld') === 'on';
+    const holdReason = formData.get('holdReason');
+    
+    // Validate hold reason if package is held
+    if (isHeld && (!holdReason || holdReason.trim() === '')) {
+        showLoading(false);
+        showToast('Hold reason is required when package is held', 'error');
+        return;
+    }
+    
     const updateData = {
         status: formData.get('status'),
         location: formData.get('location'),
@@ -2551,8 +2569,8 @@ async function handleStatusUpdate(e) {
         transportationType: formData.get('transportationType') || null,
         vehicleId: formData.get('vehicleId') || null,
         estimatedArrival: formData.get('estimatedArrival') || null,
-        isHeld: formData.get('isHeld') === 'on',
-        holdReason: formData.get('holdReason') || null
+        isHeld: isHeld,
+        holdReason: isHeld ? holdReason.trim() : null
     };
     
     console.log('Updating status for:', trackingNumber, updateData);
@@ -2571,7 +2589,10 @@ async function handleStatusUpdate(e) {
         showLoading(false);
         
         if (data.success) {
-            showToast('Shipment updated successfully', 'success');
+            const statusMessage = isHeld ? 
+                'Shipment updated successfully - Package is now held' : 
+                'Shipment updated successfully';
+            showToast(statusMessage, 'success');
             closeModal('statusUpdateModal');
             document.getElementById('statusUpdateModal').remove();
             loadAdminShipments(); // Refresh the list
