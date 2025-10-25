@@ -5,8 +5,8 @@ const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Calculate shipping rates
-router.post('/calculate-rate', [
+// Calculate shipping rates - requires authentication
+router.post('/calculate-rate', protect, [
   body('weight').isFloat({ min: 0.1 }).withMessage('Weight must be at least 0.1 lbs'),
   body('dimensions.length').isFloat({ min: 1 }).withMessage('Length must be at least 1 inch'),
   body('dimensions.width').isFloat({ min: 1 }).withMessage('Width must be at least 1 inch'),
@@ -306,8 +306,8 @@ router.get('/stats', protect, async (req, res) => {
   }
 });
 
-// Validate address
-router.post('/validate-address', [
+// Validate address - requires authentication
+router.post('/validate-address', protect, [
   body('street').notEmpty().withMessage('Street address is required'),
   body('city').notEmpty().withMessage('City is required'),
   body('state').notEmpty().withMessage('State is required'),

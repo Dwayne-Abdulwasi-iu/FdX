@@ -923,6 +923,7 @@ function handleRateCalculation(e) {
     fetch(`${API_BASE_URL}/api/shipments/calculate-rate`, {
         method: 'POST',
         headers: {
+            'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
@@ -1253,7 +1254,12 @@ function trackPackage(trackingNumber = null) {
     
     showLoading(true);
     
-    fetch(`${API_BASE_URL}/api/tracking/${input}`)
+    fetch(`${API_BASE_URL}/api/tracking/${input}`, {
+        headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+        }
+    })
     .then(response => response.json())
     .then(data => {
         showLoading(false);
@@ -1714,6 +1720,7 @@ function handleContactForm(e) {
     fetch(`${API_BASE_URL}/api/contact`, {
         method: 'POST',
         headers: {
+            'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(contactData)
