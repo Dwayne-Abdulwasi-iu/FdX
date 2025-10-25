@@ -1694,6 +1694,12 @@ function validateContactMessage() {
 // Contact form handler
 function handleContactForm(e) {
     e.preventDefault();
+    
+    // Require authentication for contact support
+    if (!requireAuth('send support messages')) {
+        return;
+    }
+    
     showLoading(true);
     
     const formData = new FormData(e.target);
