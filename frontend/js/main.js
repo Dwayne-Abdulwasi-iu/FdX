@@ -140,9 +140,30 @@
     console.warn('[NUCLEAR-PROTECTION] Maximum extension isolation active - all extension errors suppressed');
 })();
 
-// Global variables
+// Global authentication state
+let isAuthenticated = false;
 let currentUser = null;
 let authToken = localStorage.getItem('authToken');
+
+// Block all services by default until authentication is verified
+let servicesBlocked = true;
+
+// Authentication verification function
+function verifyAuthentication() {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        isAuthenticated = false;
+        servicesBlocked = true;
+        currentUser = null;
+        authToken = null;
+        return false;
+    }
+    
+    // If we have a token, validate it with the server
+    authToken = token;
+    checkAuthStatus();
+    return true;
+}
 
 // Defensive programming: Protect against extension interference
 (function() {
@@ -725,35 +746,50 @@ function scrollToSection(sectionId) {
 
 // Authentication functions
 function initializeAuth() {
-    // If we have a token, check if it's valid and restore user session
-    if (authToken) {
-        checkAuthStatus();
-    }
-    // Update UI based on auth status
+    console.log('[AUTH INIT] Starting authentication verification...');
+    
+    // Start with everything blocked
+    isAuthenticated = false;
+    servicesBlocked = true;
+    
+    // Try to verify existing authentication
+    verifyAuthentication();
+    
+    // Update UI to reflect auth state
     updateAuthUI();
+    
+    console.log('[AUTH INIT] Complete. Services blocked:', servicesBlocked);
 }
 
-// Helper function to require authentication for services
+// ABSOLUTE service blocking - no services work without authentication
 function requireAuth(actionName = 'use this service') {
-    // Check multiple conditions for authentication
-    const hasToken = authToken && authToken.trim() !== '';
-    const hasUser = currentUser && currentUser.id;
+    console.log('[AUTH CHECK]', {
+        isAuthenticated,
+        servicesBlocked,
+        hasToken: !!authToken,
+        hasUser: !!currentUser,
+        action: actionName
+    });
     
-    console.log('Auth check:', { hasToken, hasUser, authToken: authToken ? 'exists' : 'null', currentUser: currentUser ? 'exists' : 'null' });
-    
-    if (!hasToken || !hasUser) {
-        console.log('Authentication failed for:', actionName);
-        showToast(`Please log in to ${actionName}`, 'warning');
+    // ABSOLUTELY BLOCK if not authenticated
+    if (!isAuthenticated || servicesBlocked || !authToken || !currentUser) {
+        console.log('[AUTH DENIED]', actionName);
+        showToast(`🔒 Please log in to ${actionName}`, 'error');
         showLoginModal();
-        return false;
+        // Force stop all execution
+        throw new Error('Authentication required');
     }
     
-    console.log('Authentication passed for:', actionName);
+    console.log('[AUTH APPROVED]', actionName);
     return true;
 }
 
 function checkAuthStatus() {
-    if (!authToken) return;
+    if (!authToken) {
+        isAuthenticated = false;
+        servicesBlocked = true;
+        return;
+    }
     
     fetch(`${API_BASE_URL}/api/auth/me`, {
         headers: {
@@ -770,13 +806,16 @@ function checkAuthStatus() {
     .then(data => {
         if (data.success) {
             currentUser = data.user;
+            isAuthenticated = true;
+            servicesBlocked = false;
+            console.log('[AUTH SUCCESS] User authenticated:', currentUser.email);
             updateAuthUI();
         } else {
             logout();
         }
     })
     .catch(error => {
-        console.error('Auth check error:', error);
+        console.error('[AUTH ERROR]', error);
         logout();
     });
 }
@@ -785,18 +824,33 @@ function updateAuthUI() {
     const loginBtn = document.getElementById('loginBtn');
     
     // Enable/disable service elements based on authentication
-    toggleServiceElements(currentUser && authToken);
+    toggleServiceElements();
     
-    if (currentUser && loginBtn) {
+    if (isAuthenticated && currentUser && loginBtn) {
         loginBtn.textContent = `Hi, ${currentUser.firstName}`;
         // Remove existing listeners
         loginBtn.removeEventListener('click', showLoginModal);
         loginBtn.addEventListener('click', showUserMenu);
+    } else if (loginBtn) {
+        loginBtn.textContent = 'Login';
+        loginBtn.removeEventListener('click', showUserMenu);
+        loginBtn.addEventListener('click', showLoginModal);
     }
 }
 
 // Function to enable/disable all service elements based on authentication
-function toggleServiceElements(isAuthenticated) {
+function toggleServiceElements(isAuth) {
+    // Override with global authentication state
+    const shouldEnable = isAuthenticated && !servicesBlocked && currentUser && authToken;
+    
+    console.log('[UI UPDATE] Service elements state:', {
+        shouldEnable,
+        isAuthenticated,
+        servicesBlocked,
+        hasUser: !!currentUser,
+        hasToken: !!authToken
+    });
+    
     const serviceElements = [
         'trackingInput',
         'quickTrackInput', 
@@ -809,14 +863,16 @@ function toggleServiceElements(isAuthenticated) {
     serviceElements.forEach(elementId => {
         const element = document.getElementById(elementId);
         if (element) {
-            if (isAuthenticated) {
+            if (shouldEnable) {
                 element.disabled = false;
                 element.style.opacity = '1';
                 element.style.pointerEvents = 'auto';
+                element.removeAttribute('title');
             } else {
                 element.disabled = true;
-                element.style.opacity = '0.5';
+                element.style.opacity = '0.3';
                 element.style.pointerEvents = 'none';
+                element.setAttribute('title', 'Please log in to use this service');
             }
         }
     });
@@ -825,12 +881,12 @@ function toggleServiceElements(isAuthenticated) {
     const forms = document.querySelectorAll('#rateForm, #contactForm');
     forms.forEach(form => {
         if (form) {
-            if (isAuthenticated) {
+            if (shouldEnable) {
                 form.style.pointerEvents = 'auto';
                 form.style.opacity = '1';
             } else {
                 form.style.pointerEvents = 'none';
-                form.style.opacity = '0.5';
+                form.style.opacity = '0.3';
             }
         }
     });
@@ -902,9 +958,14 @@ function showUserMenu() {
 }
 
 function logout() {
+    // Reset ALL authentication state
     localStorage.removeItem('authToken');
     authToken = null;
     currentUser = null;
+    isAuthenticated = false;
+    servicesBlocked = true;
+    
+    console.log('[LOGOUT] All authentication state cleared');
     
     const loginBtn = document.getElementById('loginBtn');
     if (loginBtn) {
@@ -913,6 +974,9 @@ function logout() {
         loginBtn.removeEventListener('click', showUserMenu);
         loginBtn.addEventListener('click', showLoginModal);
     }
+    
+    // Block all services immediately
+    updateAuthUI();
     
     showToast('Logged out successfully', 'success');
 }
@@ -956,8 +1020,11 @@ function initializeForms() {
 function handleRateCalculation(e) {
     e.preventDefault();
     
-    // Require authentication for rate calculation
-    if (!requireAuth('calculate shipping rates')) {
+    try {
+        // REQUIRE authentication - will throw error if not authenticated
+        requireAuth('calculate shipping rates');
+    } catch (error) {
+        console.log('[BLOCKED] Rate calculation attempt without authentication');
         return;
     }
     
@@ -1269,8 +1336,11 @@ function proceedToShip(service, cost) {
 
 // Tracking functionality
 function quickTrack() {
-    // Require authentication for quick tracking
-    if (!requireAuth('track packages')) {
+    try {
+        // REQUIRE authentication - will throw error if not authenticated
+        requireAuth('track packages');
+    } catch (error) {
+        console.log('[BLOCKED] Quick track attempt without authentication');
         return;
     }
     
@@ -1283,8 +1353,11 @@ function quickTrack() {
 }
 
 function trackPackage(trackingNumber = null) {
-    // Require authentication for package tracking
-    if (!requireAuth('track packages')) {
+    try {
+        // REQUIRE authentication - will throw error if not authenticated
+        requireAuth('track packages');
+    } catch (error) {
+        console.log('[BLOCKED] Tracking attempt without authentication');
         return;
     }
     
@@ -1821,12 +1894,22 @@ function handleLogin(e) {
     .then(data => {
         showLoading(false);
         if (data.success) {
+            // Set ALL authentication state
             authToken = data.token;
             localStorage.setItem('authToken', authToken);
             currentUser = data.user;
+            isAuthenticated = true;
+            servicesBlocked = false;
+            
+            console.log('[LOGIN SUCCESS] Authentication state set:', {
+                user: currentUser.email,
+                isAuthenticated,
+                servicesBlocked
+            });
+            
             updateAuthUI();
             closeModal('loginModal');
-            showToast(`Welcome back, ${data.user.firstName}!`, 'success');
+            showToast(`🎉 Welcome back, ${data.user.firstName}!`, 'success');
         } else {
             showToast(data.message || 'Login failed', 'error');
         }
