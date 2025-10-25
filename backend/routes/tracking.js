@@ -1,11 +1,12 @@
 const express = require('express');
 const { param, validationResult } = require('express-validator');
 const Shipment = require('../models/Shipment');
+const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Track shipment by tracking number
-router.get('/:trackingNumber', [
+// Track shipment by tracking number - requires authentication
+router.get('/:trackingNumber', protect, [
   param('trackingNumber').isLength({ min: 8, max: 20 }).withMessage('Invalid tracking number format')
 ], async (req, res) => {
   try {
@@ -87,7 +88,7 @@ router.get('/:trackingNumber', [
 });
 
 // Get tracking updates for multiple packages (for authenticated users)
-router.post('/bulk-track', async (req, res) => {
+router.post('/bulk-track', protect, async (req, res) => {
   try {
     const { trackingNumbers } = req.body;
 

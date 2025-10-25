@@ -5,8 +5,8 @@ const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Contact form submission
-router.post('/', [
+// Contact form submission - requires authentication
+router.post('/', protect, [
   body('name').notEmpty().withMessage('Name is required').trim(),
   body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
   body('subject').notEmpty().withMessage('Subject is required').trim(),
