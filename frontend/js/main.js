@@ -725,17 +725,30 @@ function scrollToSection(sectionId) {
 
 // Authentication functions
 function initializeAuth() {
+    // If we have a token, check if it's valid and restore user session
+    if (authToken) {
+        checkAuthStatus();
+    }
     // Update UI based on auth status
     updateAuthUI();
 }
 
 // Helper function to require authentication for services
 function requireAuth(actionName = 'use this service') {
-    if (!authToken || !currentUser) {
+    // Check multiple conditions for authentication
+    const hasToken = authToken && authToken.trim() !== '';
+    const hasUser = currentUser && currentUser.id;
+    
+    console.log('Auth check:', { hasToken, hasUser, authToken: authToken ? 'exists' : 'null', currentUser: currentUser ? 'exists' : 'null' });
+    
+    if (!hasToken || !hasUser) {
+        console.log('Authentication failed for:', actionName);
         showToast(`Please log in to ${actionName}`, 'warning');
         showLoginModal();
         return false;
     }
+    
+    console.log('Authentication passed for:', actionName);
     return true;
 }
 
@@ -771,12 +784,56 @@ function checkAuthStatus() {
 function updateAuthUI() {
     const loginBtn = document.getElementById('loginBtn');
     
+    // Enable/disable service elements based on authentication
+    toggleServiceElements(currentUser && authToken);
+    
     if (currentUser && loginBtn) {
         loginBtn.textContent = `Hi, ${currentUser.firstName}`;
         // Remove existing listeners
         loginBtn.removeEventListener('click', showLoginModal);
         loginBtn.addEventListener('click', showUserMenu);
     }
+}
+
+// Function to enable/disable all service elements based on authentication
+function toggleServiceElements(isAuthenticated) {
+    const serviceElements = [
+        'trackingInput',
+        'quickTrackInput', 
+        'trackPackageBtn',
+        'quickTrackBtn',
+        'rateForm',
+        'contactForm'
+    ];
+    
+    serviceElements.forEach(elementId => {
+        const element = document.getElementById(elementId);
+        if (element) {
+            if (isAuthenticated) {
+                element.disabled = false;
+                element.style.opacity = '1';
+                element.style.pointerEvents = 'auto';
+            } else {
+                element.disabled = true;
+                element.style.opacity = '0.5';
+                element.style.pointerEvents = 'none';
+            }
+        }
+    });
+    
+    // Also disable form submissions
+    const forms = document.querySelectorAll('#rateForm, #contactForm');
+    forms.forEach(form => {
+        if (form) {
+            if (isAuthenticated) {
+                form.style.pointerEvents = 'auto';
+                form.style.opacity = '1';
+            } else {
+                form.style.pointerEvents = 'none';
+                form.style.opacity = '0.5';
+            }
+        }
+    });
 }
 
 function showUserMenu() {
