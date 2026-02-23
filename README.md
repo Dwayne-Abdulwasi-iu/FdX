@@ -1,71 +1,76 @@
-# FedeX Shipping - Complete Shipping Management System
+# ATLAS Delivery - Complete Shipping Management System
 
-![FedeX Shipping](https://img.shields.io/badge/FedeX-Shipping-blue?style=for-the-badge&logo=truck)
-![Node.js](https://img.shields.io/badge/Node.js-18.x-green?style=flat-square&logo=node.js)
+![ATLAS Delivery](https://img.shields.io/badge/ATLAS-Delivery-blue?style=for-the-badge&logo=truck)
+![Node.js](https://img.shields.io/badge/Node.js-22.x-green?style=flat-square&logo=node.js)
 ![Express](https://img.shields.io/badge/Express-4.18-lightgrey?style=flat-square&logo=express)
-![MongoDB](https://img.shields.io/badge/MongoDB-Latest-green?style=flat-square&logo=mongodb)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green?style=flat-square&logo=mongodb)
 
-A modern, full-stack shipping and package tracking website built for FedeX Shipping company. This comprehensive web application provides package tracking, shipping rate calculation, user management, and admin dashboard functionality.
+A modern, full-stack shipping and package tracking web application built for **ATLAS Delivery**. This platform provides real-time package tracking, shipping rate calculation, user authentication, and a complete admin dashboard for shipment management.
+
+---
 
 ## 🚀 Features
 
 ### Core Features
-- **📦 Package Tracking** - Real-time package tracking with detailed history
+- **📦 Package Tracking** - Real-time package tracking with full shipment history
 - **💰 Shipping Rate Calculator** - Dynamic rate calculation based on weight, dimensions, and distance
-- **👤 User Authentication** - Secure registration and login system
-- **📊 Admin Dashboard** - Complete shipment management for administrators
-- **📱 Responsive Design** - Mobile-first, responsive design for all devices
-- **🔒 Security** - JWT authentication, rate limiting, and data validation
+- **👤 User Authentication** - Secure JWT-based registration and login system
+- **📊 Admin Dashboard** - Complete shipment and user management for administrators
+- **📱 Responsive Design** - Mobile-first, fully responsive across all devices
+- **🔒 Security** - JWT authentication, bcrypt hashing, rate limiting, and helmet security headers
 
 ### User Features
 - User registration and profile management
 - Create and manage shipments
-- Track multiple packages
-- View shipping history
-- Calculate shipping rates in real-time
+- Track multiple packages simultaneously
+- View full shipping history
+- Real-time shipping rate calculation
 
 ### Admin Features
-- Dashboard with comprehensive analytics
-- Manage all shipments and update statuses
-- User management
-- Real-time tracking updates
+- Dashboard with comprehensive analytics and KPIs
+- Manage and update all shipment statuses
+- User account management
 - Revenue and performance metrics
+
+---
 
 ## 🛠️ Technology Stack
 
 ### Backend
-- **Node.js** - Runtime environment
-- **Express.js** - Web application framework
-- **MongoDB** - Database for storing shipments and user data
-- **Mongoose** - MongoDB object modeling
-- **JWT** - Authentication and authorization
-- **bcryptjs** - Password hashing
-- **express-validator** - Input validation
-- **helmet** - Security middleware
-- **cors** - Cross-origin resource sharing
+- **Node.js** (v22.x) — Runtime environment
+- **Express.js** — Web application framework
+- **MongoDB Atlas** — Cloud database
+- **Mongoose** — MongoDB object modeling
+- **JWT** — Authentication and authorization
+- **bcryptjs** — Password hashing
+- **express-validator** — Input validation
+- **helmet** — Security headers middleware
+- **cors** — Cross-origin resource sharing
+- **express-rate-limit** — Rate limiting
 
 ### Frontend
-- **HTML5** - Semantic markup
-- **CSS3** - Modern styling with Flexbox and Grid
-- **JavaScript (ES6+)** - Interactive functionality
-- **Font Awesome** - Icons
-- **Google Fonts (Inter)** - Typography
+- **HTML5** — Semantic markup
+- **CSS3** — Flexbox/Grid layout, responsive design
+- **JavaScript (ES6+)** — Interactive client-side functionality
+- **Font Awesome** — Icon library
+- **Google Fonts (Inter)** — Typography
+
+---
 
 ## 📋 Prerequisites
 
-Before running this project, make sure you have:
+- **Node.js** v16+ — [Download](https://nodejs.org/)
+- **MongoDB Atlas** account — [Sign up free](https://www.mongodb.com/cloud/atlas)
+- **Git** — [Download](https://git-scm.com/)
 
-- **Node.js** (v16.0 or higher) - [Download Node.js](https://nodejs.org/)
-- **MongoDB** - [Download MongoDB](https://www.mongodb.com/try/download/community) or use [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-- **Git** - [Download Git](https://git-scm.com/)
-- **Code Editor** - VS Code recommended
+---
 
 ## 🚀 Installation & Setup
 
 ### 1. Clone the Repository
 ```bash
-git clone <repository-url>
-cd fedex-shipping
+git clone https://github.com/Dwayne-Abdulwasi-iu/atlas-shipping.git
+cd atlas-shipping
 ```
 
 ### 2. Install Dependencies
@@ -74,294 +79,226 @@ npm install
 ```
 
 ### 3. Environment Configuration
-Copy the example environment file and configure your settings:
-```bash
-cp .env.example .env
-```
-
-Edit the `.env` file with your configuration:
+Create a `.env` file in the root directory:
 ```env
-# Environment Configuration
 NODE_ENV=development
-PORT=3001
+PORT=3002
 
-# Database Configuration
-MONGODB_URI=mongodb://localhost:27017/fedex_shipping
-DB_NAME=fedex_shipping
+# MongoDB Atlas
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.as7yeiu.mongodb.net/fedex-shipping?retryWrites=true&w=majority&appName=Cluster0
 
-# JWT Configuration
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+# JWT
+JWT_SECRET=your-strong-jwt-secret
 JWT_EXPIRES_IN=7d
 
-# API Keys (Replace with actual keys)
-SHIPPING_API_KEY=your-shipping-api-key
-EMAIL_API_KEY=your-email-service-api-key
+# Admin
+ADMIN_KEY=FEDEX_ADMIN_2025
 
-# CORS Configuration
-CORS_ORIGIN=http://localhost:3001
+# CORS
+CORS_ORIGIN=*
+
+# Security
+BCRYPT_SALT_ROUNDS=12
 
 # Rate Limiting
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
 ```
 
-### 4. Database Setup
-Make sure MongoDB is running on your system:
-
-**Local MongoDB:**
+### 4. Start the Application
 ```bash
-mongod --dbpath /path/to/your/db
-```
-
-**Or use MongoDB Atlas** (Cloud database):
-1. Create a free account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-2. Create a new cluster
-3. Get your connection string
-4. Update `MONGODB_URI` in your `.env` file
-
-### 5. Start the Application
-```bash
-# Development mode (with auto-restart)
-npm run dev
-
-# Production mode
+# Production
 npm start
+
+# Development (auto-reload)
+npm run dev
 ```
 
 The application will be available at:
-- **Website**: http://localhost:3001
-- **API**: http://localhost:3001/api
+- **Website**: http://localhost:3002
+- **API**: http://localhost:3002/api
+
+---
 
 ## 📁 Project Structure
 
 ```
-fedex-shipping/
-├── backend/                 # Server-side code
-│   ├── middleware/          # Express middleware
-│   │   └── auth.js         # Authentication middleware
-│   ├── models/             # Database models
-│   │   ├── User.js         # User model
-│   │   └── Shipment.js     # Shipment model
-│   ├── routes/             # API routes
-│   │   ├── auth.js         # Authentication routes
-│   │   ├── shipments.js    # Shipment management
-│   │   ├── tracking.js     # Package tracking
-│   │   └── admin.js        # Admin functionality
-│   └── server.js           # Main server file
-├── frontend/               # Client-side code
+atlas-shipping/
+├── backend/
+│   ├── middleware/
+│   │   └── auth.js              # JWT authentication middleware
+│   ├── models/
+│   │   ├── User.js              # User schema
+│   │   ├── Shipment.js          # Shipment schema
+│   │   └── Contact.js           # Contact form schema
+│   ├── routes/
+│   │   ├── auth.js              # Authentication routes
+│   │   ├── shipments.js         # Shipment management
+│   │   ├── tracking.js          # Package tracking
+│   │   ├── admin.js             # Admin routes
+│   │   └── contact.js           # Contact form
+│   └── server.js                # Main Express server
+├── frontend/
 │   ├── css/
-│   │   └── style.css       # Main stylesheet
+│   │   └── style.css            # Global stylesheet
 │   ├── js/
-│   │   └── main.js         # Main JavaScript file
-│   ├── images/             # Image assets
-│   └── index.html          # Main HTML file
-├── .github/
-│   └── copilot-instructions.md  # Development guidelines
-├── .env.example            # Environment variables template
-├── .gitignore              # Git ignore rules
-├── package.json            # Node.js dependencies and scripts
-└── README.md               # This file
+│   │   ├── main.js              # Main client-side logic
+│   │   └── extension-protection.js
+│   ├── index.html               # Homepage
+│   ├── careers.html
+│   ├── faq.html
+│   ├── privacy-policy.html
+│   ├── shipping-guide.html
+│   └── terms-of-service.html
+├── .env                         # Environment variables (not committed)
+├── .env.example                 # Environment template
+├── package.json
+├── render.yaml                  # Render deployment config
+└── README.md
 ```
+
+---
 
 ## 🔗 API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - User login
-- `GET /api/auth/me` - Get current user profile
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/auth/register` | Register a new user |
+| `POST` | `/api/auth/login` | User login |
+| `GET` | `/api/auth/me` | Get current user profile (auth required) |
 
 ### Shipments
-- `POST /api/shipments/calculate-rate` - Calculate shipping rate
-- `POST /api/shipments/create` - Create new shipment (auth required)
-- `GET /api/shipments/my-shipments` - Get user's shipments (auth required)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/shipments/calculate-rate` | Calculate shipping rate |
+| `POST` | `/api/shipments/create` | Create a shipment (auth required) |
+| `GET` | `/api/shipments/my-shipments` | Get user shipments (auth required) |
 
 ### Tracking
-- `GET /api/tracking/:trackingNumber` - Track package by tracking number
-- `POST /api/tracking/bulk-track` - Track multiple packages
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/tracking/:trackingNumber` | Track a package |
+| `POST` | `/api/tracking/bulk-track` | Track multiple packages |
 
-### Admin (Admin access required)
-- `GET /api/admin/dashboard` - Get dashboard statistics
-- `GET /api/admin/shipments` - Get all shipments with filters
-- `PUT /api/admin/shipments/:id/status` - Update shipment status
-- `GET /api/admin/users` - Get all users
+### Admin *(admin role required)*
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/admin/dashboard` | Dashboard statistics |
+| `GET` | `/api/admin/shipments` | All shipments with filters |
+| `PUT` | `/api/admin/shipments/:id/status` | Update shipment status |
+| `GET` | `/api/admin/users` | All users |
+
+---
 
 ## 📱 Usage Guide
 
 ### For Customers
 
-1. **Register/Login**
-   - Click "Login" in the navigation
-   - Create a new account or login with existing credentials
-
-2. **Calculate Shipping Rates**
-   - Go to the "Ship" section
-   - Enter origin and destination ZIP codes
-   - Add package dimensions and weight
-   - Select service type
-   - Click "Calculate Rate"
-
-3. **Track Packages**
-   - Use the quick track form on the homepage
-   - Or go to the "Track" section
-   - Enter your tracking number
-   - View real-time status and history
-
-4. **Create Shipments**
-   - Login to your account
-   - Use the rate calculator
-   - Click "Create Shipment" after calculating rates
-   - Fill in recipient details and package information
+1. **Register / Login** — Click "Login" in the navigation bar
+2. **Calculate Rates** — Enter origin/destination ZIP codes, package weight and dimensions, then select a service type
+3. **Track Packages** — Enter a tracking number on the homepage or tracking page
+4. **Create Shipments** — Log in, calculate a rate, then click "Create Shipment"
 
 ### For Administrators
 
-1. **Access Admin Dashboard**
-   - Login with admin credentials
-   - Click on user menu → "Admin Dashboard"
+1. **Access Dashboard** — Log in with admin credentials → user menu → "Admin Dashboard"
+2. **Manage Shipments** — View, filter, and update shipment statuses
+3. **View Analytics** — Monitor revenue, volumes, and user statistics
 
-2. **Manage Shipments**
-   - View all shipments with filtering options
-   - Update shipment statuses
-   - Track shipment progress
-
-3. **View Analytics**
-   - Monitor key performance indicators
-   - Track revenue and shipment volumes
-   - View user statistics
-
-## 🔧 Development
-
-### Available Scripts
-
-```bash
-# Start development server with auto-reload
-npm run dev
-
-# Start production server
-npm start
-
-# Run tests (when available)
-npm test
-
-# Build frontend (when build process is added)
-npm run build
-```
-
-### Development Guidelines
-
-1. **Code Style**
-   - Use ES6+ features
-   - Follow consistent indentation (2 spaces)
-   - Use meaningful variable and function names
-   - Add comments for complex logic
-
-2. **API Development**
-   - Use RESTful conventions
-   - Implement proper error handling
-   - Validate all inputs
-   - Return consistent response formats
-
-3. **Frontend Development**
-   - Follow responsive design principles
-   - Use semantic HTML
-   - Implement proper accessibility features
-   - Optimize for performance
-
-### Adding New Features
-
-1. **Backend Features**
-   - Create new routes in `/backend/routes/`
-   - Add database models in `/backend/models/`
-   - Implement middleware in `/backend/middleware/`
-   - Test API endpoints
-
-2. **Frontend Features**
-   - Update HTML structure in `/frontend/index.html`
-   - Add styles in `/frontend/css/style.css`
-   - Implement functionality in `/frontend/js/main.js`
-   - Ensure responsive design
-
-## 🚀 Deployment
-
-### Environment Setup
-1. Set `NODE_ENV=production` in your production environment
-2. Use a strong, unique `JWT_SECRET`
-3. Configure production MongoDB connection
-4. Set up proper CORS origins
-5. Configure rate limiting for your traffic
-
-### Recommended Hosting Platforms
-- **Backend**: Heroku, Railway, DigitalOcean, AWS
-- **Database**: MongoDB Atlas, AWS DocumentDB
-- **Frontend**: Netlify, Vercel (if serving separately)
-
-### Production Checklist
-- [ ] Environment variables configured
-- [ ] Database connection secure
-- [ ] JWT secret is strong and unique
-- [ ] HTTPS enabled
-- [ ] Error monitoring setup
-- [ ] Backup strategy implemented
-- [ ] Rate limiting configured
-- [ ] Security headers enabled
+---
 
 ## 🔒 Security Features
 
-- **Authentication**: JWT-based authentication
-- **Password Security**: bcrypt hashing with salt
-- **Rate Limiting**: Prevents abuse and DDoS attacks
-- **Input Validation**: Server-side validation for all inputs
-- **CORS Protection**: Configured for specific origins
-- **Security Headers**: Helmet.js for security headers
-- **Data Sanitization**: Prevents injection attacks
+- JWT-based stateless authentication
+- bcrypt password hashing (12 salt rounds)
+- Rate limiting (100 req / 15 min per IP)
+- Helmet.js security headers (HSTS, CSP, etc.)
+- CORS protection
+- Server-side input validation
+
+---
+
+## 🚀 Deployment
+
+This project is configured for deployment on **Render**.
+
+### Render Setup
+1. Connect your GitHub repository to Render
+2. Set all environment variables in the Render dashboard:
+   - `NODE_ENV=production`
+   - `PORT=10000`
+   - `MONGODB_URI=<your-atlas-uri>`
+   - `JWT_SECRET=<strong-secret>`
+   - `ADMIN_KEY=<your-admin-key>`
+3. Deploy — Render uses `npm start` automatically via `render.yaml`
+
+### Production Checklist
+- [x] MongoDB Atlas connected
+- [x] JWT secret configured
+- [x] HTTPS enabled (via Render)
+- [x] Rate limiting active
+- [x] Security headers enabled (Helmet.js)
+- [ ] Email notifications
+- [ ] Custom domain configured
+
+---
+
+## 🔧 Available Scripts
+
+```bash
+npm start        # Start production server
+npm run dev      # Start development server with nodemon
+```
+
+---
+
+## 🔄 Version History
+
+- **v1.0.0** — Initial release
+  - User authentication and profiles
+  - Package tracking system
+  - Shipping rate calculator
+  - Admin dashboard
+  - MongoDB Atlas integration
+  - Responsive frontend
+
+---
+
+## 🚀 Planned Enhancements
+
+- [ ] Email notifications for shipment updates
+- [ ] SMS alerts
+- [ ] Payment gateway integration
+- [ ] Bulk shipment creation
+- [ ] Advanced reporting and analytics
+- [ ] Mobile app
+- [ ] Multi-language support
+- [ ] Automated label printing
+
+---
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit changes: `git commit -m 'Add your feature'`
+4. Push: `git push origin feature/your-feature`
 5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👥 Team
-
-- **Development Team**: FedeX Shipping Development Team
- - **Contact**: support@fedex.com
-
-## 🆘 Support
-
-For support and questions:
-
-- **Email**: support@fedex.com
-- **Phone**: 1-800-FEDEX-1 (1-800-333-3391)
-- **Documentation**: Check this README and code comments
-- **Issues**: Create an issue in the repository
-
-## 🔄 Version History
-
-- **v1.0.0** - Initial release with core features
-  - User authentication and profile management
-  - Package tracking system
-  - Shipping rate calculator
-  - Admin dashboard
-  - Responsive design
-
-## 🚀 Future Enhancements
-
-- [ ] Email notifications for shipment updates
-- [ ] SMS notifications
-- [ ] Bulk shipment creation
-- [ ] Advanced reporting and analytics
-- [ ] Integration with actual shipping carriers
-- [ ] Mobile app development
-- [ ] Multi-language support
-- [ ] Payment gateway integration
-- [ ] Automated label printing
-- [ ] Warehouse management features
 
 ---
 
-**FedeX Shipping** - Fast, Reliable Package Delivery Worldwide 🚚
+## 📝 License
+
+This project is licensed under the MIT License.
+
+---
+
+## 🆘 Support
+
+- **Email**: support@atlasdelivery.com
+- **Issues**: [GitHub Issues](https://github.com/Dwayne-Abdulwasi-iu/atlas-shipping/issues)
+
+---
+
+**ATLAS Delivery** — Fast, Reliable Package Delivery Worldwide 🚚
