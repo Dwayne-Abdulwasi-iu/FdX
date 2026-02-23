@@ -42,7 +42,7 @@ app.use(cors({
     'http://localhost:3000',
     'http://127.0.0.1:5500',
     'http://localhost:5500',
-    'https://fedex-shipping.onrender.com'
+    'https://ALD-shipping.onrender.com'
   ],
   credentials: true
 }));
@@ -80,7 +80,7 @@ const connectDB = async () => {
       console.log('❌ MongoDB Atlas connection failed, trying local MongoDB...');
       
       // Fallback to local MongoDB
-      const localURI = 'mongodb://localhost:27017/fedex-shipping';
+      const localURI = 'mongodb://localhost:27017/ALD-shipping';
       conn = await mongoose.connect(localURI, mongooseOptions);
       console.log(`✅ Local MongoDB Connected: ${conn.connection.host}`);
       console.log('💡 Note: Using local MongoDB. For production, ensure MongoDB Atlas connectivity.');
@@ -134,7 +134,7 @@ app.use((err, req, res, next) => {
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     success: true, 
-    message: 'FedeX Shipping Server is running',
+    message: 'ATLAS Delivery Server is running',
     timestamp: new Date().toISOString()
   });
 });
@@ -157,7 +157,7 @@ app.get('*', (req, res) => {
 const PORT = process.env.PORT || 3002;
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚚 FedeX Shipping Server running on port ${PORT}`);
+    console.log(`🚚 ATLAS Delivery Server running on port ${PORT}`);
     console.log(`📱 Frontend available at http://localhost:${PORT}`);
     console.log(`🔗 API available at http://localhost:${PORT}/api`);
 });module.exports = app;

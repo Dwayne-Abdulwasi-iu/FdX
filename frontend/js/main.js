@@ -1994,7 +1994,7 @@ function handleRegister(e) {
             currentUser = data.user;
             updateAuthUI();
             closeModal('registerModal');
-            showToast(`Welcome to FedeX, ${data.user.firstName}!`, 'success');
+            showToast(`Welcome to ALD, ${data.user.firstName}!`, 'success');
         } else {
             if (data.errors && data.errors.length > 0) {
                 data.errors.forEach(error => {
@@ -2062,7 +2062,7 @@ function showAdminRegisterModal() {
                 </div>
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" name="email" value="admin@fedex.com" required>
+                    <input type="email" name="email" value="admin@ALD.com" required>
                 </div>
                 <div class="form-group">
                     <label>Password</label>
@@ -2096,8 +2096,8 @@ function showAdminRegisterModal() {
                 </div>
                 <div class="form-group">
                     <label>Admin Key</label>
-                    <input type="password" name="adminKey" value="FEDEX_ADMIN_2025" required>
-                    <small class="admin-key-note">Admin key: FEDEX_ADMIN_2025</small>
+                    <input type="password" name="adminKey" value="ALD_ADMIN_2025" required>
+                    <small class="admin-key-note">Admin key: ALD_ADMIN_2025</small>
                 </div>
                 <button type="submit" class="btn-primary">Create Admin Account</button>
             </form>

@@ -224,7 +224,7 @@ router.post('/register-admin', [
   body('address.state').notEmpty().withMessage('State is required'),
   body('address.zipCode').isPostalCode('US').withMessage('Please provide a valid zip code'),
   body('adminKey').custom((value) => {
-    if (value !== 'FEDEX_ADMIN_2025') {
+    if (value !== 'ALD_ADMIN_2025') {
       throw new Error('Invalid admin key');
     }
     return true;

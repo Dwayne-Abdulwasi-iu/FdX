@@ -162,7 +162,7 @@ router.put('/shipments/:id/status', [
     // Add to history
     shipment.status.history.push({
       status,
-      location: location || 'FedeX Facility',
+      location: location || 'ALD Facility',
       timestamp: new Date(),
       description: description || `Status updated to ${status}`,
       updatedBy: req.user._id
