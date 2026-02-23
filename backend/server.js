@@ -66,7 +66,7 @@ const connectDB = async () => {
     const mongooseOptions = {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      serverSelectionTimeoutMS: 15000, // Timeout after 15s
       socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
     };
 
@@ -75,7 +75,8 @@ const connectDB = async () => {
     try {
       console.log('Attempting to connect to MongoDB Atlas...');
       conn = await mongoose.connect(process.env.MONGODB_URI, mongooseOptions);
-      console.log(`✅ MongoDB Atlas Connected: ${conn.connection.host}`);
+      const dbName = conn.connection.db.databaseName;
+      console.log(`✅ MongoDB Atlas Connected | DB: ${dbName} | Cluster: cluster0.as7yeiu.mongodb.net`);
     } catch (atlasError) {
       console.log('❌ MongoDB Atlas connection failed, trying local MongoDB...');
       
