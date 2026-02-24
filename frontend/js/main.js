@@ -1960,6 +1960,22 @@ function handleLogin(e) {
 
 function handleRegister(e) {
     e.preventDefault();
+    
+    // Get password and confirm password values
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('registerConfirmPassword').value;
+    const errorMessage = document.getElementById('passwordMatchError');
+    
+    // Validate passwords match
+    if (password !== confirmPassword) {
+        errorMessage.style.display = 'block';
+        document.getElementById('registerConfirmPassword').focus();
+        return;
+    }
+    
+    // Hide error message if passwords match
+    errorMessage.style.display = 'none';
+    
     showLoading(true);
     
     const formData = new FormData(e.target);

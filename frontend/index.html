@@ -508,6 +508,11 @@
                         <input type="password" id="registerPassword" name="password" minlength="6" required>
                     </div>
                     <div class="form-group">
+                        <label for="registerConfirmPassword">Confirm Password</label>
+                        <input type="password" id="registerConfirmPassword" name="confirmPassword" minlength="6" required>
+                        <div id="passwordMatchError" class="error-message" style="display: none; color: #e74c3c; margin-top: 5px;">Passwords do not match. Please try again.</div>
+                    </div>
+                    <div class="form-group">
                         <label for="registerPhone">Phone</label>
                         <input type="tel" id="registerPhone" name="phone" required>
                     </div>
