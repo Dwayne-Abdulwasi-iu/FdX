@@ -2078,11 +2078,11 @@ function showAdminRegisterModal() {
                 </div>
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" name="email" value="admin@ALD.com" required>
+                    <input type="email" name="email" value="admin@atlas.com" required>
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" name="password" value="admin123" required>
+                    <input type="password" name="password" value="adminatlas123" required>
                 </div>
                 <div class="form-group">
                     <label>Phone (10+ digits)</label>
