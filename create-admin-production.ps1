@@ -3,8 +3,8 @@
 $body = @{
     firstName = "Admin"
     lastName = "User"
-    email = "admin@ATLAS Delivery.com"
-    password = "ATLAS DeliveryAdmin2025!"
+    email = "admin@atlas.com"
+    password = "adminatlas123"
     phone = "+1234567890"
     address = @{
         street = "123 Admin Street"
@@ -24,8 +24,8 @@ try {
     Write-Host ""
     Write-Host "✅ Admin user created successfully!"
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Host "📧 Email: admin@ATLAS Delivery.com"
-    Write-Host "🔑 Password: ATLAS DeliveryAdmin2025!"
+    Write-Host "📧 Email: admin@atlas.com"
+    Write-Host "🔑 Password: adminatlas123"
     Write-Host "🎫 Token: $($response.token)"
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-Host ""

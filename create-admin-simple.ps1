@@ -22,8 +22,8 @@ try {
     
     Write-Host ""
     Write-Host "✅ Admin user created successfully!"
-    Write-Host "Email: admin@ATLAS Delivery.com"
-    Write-Host "Password: ATLAS DeliveryAdmin2025!"
+    Write-Host "Email: admin@atlas.com"
+    Write-Host "Password: adminatlas123"
     Write-Host ""
     Write-Host "Login at: https://ATLAS Delivery-shipping.onrender.com"
     

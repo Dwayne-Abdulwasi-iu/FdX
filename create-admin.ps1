@@ -4,8 +4,8 @@ Start-Sleep -Seconds 3
 $body = @{
     firstName = "Admin"
     lastName = "User"
-    email = "admin@atlasdelivery.com"
-    password = "admin123"
+    email = "admin@atlas.com"
+    password = "adminatlas123"
     phone = "+1234567890"
     address = @{
         street = "123 Admin St"
@@ -20,8 +20,8 @@ try {
     Write-Host "Creating admin user..."
     $response = Invoke-RestMethod -Uri "http://localhost:3002/api/auth/register-admin" -Method POST -Body $body -ContentType "application/json"
     Write-Host "✅ Admin user created successfully!"
-    Write-Host "📧 Email: admin@atlasdelivery.com"
-    Write-Host "🔑 Password: admin123"
+    Write-Host "📧 Email: admin@atlas.com"
+    Write-Host "🔑 Password: adminatlas123"
     Write-Host "🎫 Token: $($response.token)"
     Write-Host ""
     Write-Host "Now you can:"

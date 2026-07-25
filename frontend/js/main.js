@@ -2112,8 +2112,8 @@ function showAdminRegisterModal() {
                 </div>
                 <div class="form-group">
                     <label>Admin Key</label>
-                    <input type="password" name="adminKey" value="ALD_ADMIN_2025" required>
-                    <small class="admin-key-note">Admin key: ALD_ADMIN_2025</small>
+                    <input type="password" name="adminKey" value="ATLAS_ADMIN_2025" required>
+                    <small class="admin-key-note">Admin key: ATLAS_ADMIN_2025</small>
                 </div>
                 <button type="submit" class="btn-primary">Create Admin Account</button>
             </form>
