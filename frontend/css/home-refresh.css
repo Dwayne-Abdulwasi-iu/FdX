@@ -1,8 +1,8 @@
 :root {
-    --fedex-purple: #4d148c;
-    --fedex-orange: #ff6600;
-    --fedex-ink: #292929;
-    --fedex-muted: #666;
+    --brand-purple: #623d7a;
+    --brand-orange: #ff6600;
+    --brand-ink: #292929;
+    --brand-muted: #666;
 }
 
 html {
@@ -11,17 +11,17 @@ html {
 }
 
 body {
-    color: var(--fedex-ink);
+    color: var(--brand-ink);
 }
 
 .navbar {
-    background: var(--fedex-purple);
+    background: var(--brand-purple);
     border: 0;
     box-shadow: 0 2px 10px rgba(20, 0, 40, 0.18);
 }
 
 .navbar.scrolled {
-    background: var(--fedex-purple) !important;
+    background: var(--brand-purple) !important;
 }
 
 .nav-container {
@@ -45,7 +45,7 @@ body {
 
 .brand-ex,
 .brand-period {
-    color: var(--fedex-orange);
+    color: var(--brand-orange);
 }
 
 .brand-period {
@@ -120,6 +120,12 @@ body {
     text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
+.section-header h2,
+.shipment-shortcuts h2,
+.helpful-resources h2 {
+    color: #68477d;
+}
+
 .hero-actions {
     justify-content: center;
     gap: 0;
@@ -162,7 +168,7 @@ body {
 .hero-tab:hover,
 .hero-tab:focus-visible,
 .hero-tab.active {
-    background: var(--fedex-purple);
+    background: var(--brand-purple);
     color: #fff;
 }
 
@@ -205,7 +211,7 @@ body {
     min-width: 108px;
     padding: 0 16px;
     border-radius: 0;
-    background: var(--fedex-orange);
+    background: var(--brand-orange);
     color: #fff;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -216,7 +222,7 @@ body {
 }
 
 .hero-track-form .btn-track:disabled {
-    background: var(--fedex-orange);
+    background: var(--brand-orange);
     color: #fff;
     opacity: 1 !important;
     -webkit-text-fill-color: #fff;
@@ -269,7 +275,7 @@ body {
 }
 
 .shipment-shortcut i {
-    color: var(--fedex-purple);
+    color: var(--brand-purple);
     font-size: 2.35rem;
     font-weight: 900;
     transition: transform 160ms ease;
@@ -322,7 +328,7 @@ body {
 .resource-card p {
     max-width: 290px;
     margin: 0 auto 14px;
-    color: var(--fedex-muted);
+    color: var(--brand-muted);
     font-size: 0.86rem;
 }
 
@@ -346,11 +352,11 @@ body {
 .social-links a:hover,
 .close:hover,
 .modal-footer a {
-    --accent-purple: var(--fedex-purple);
+    --accent-purple: var(--brand-purple);
 }
 
 .btn-primary {
-    background: var(--fedex-purple);
+    background: var(--brand-purple);
 }
 
 .btn-primary:hover {
@@ -358,12 +364,12 @@ body {
 }
 
 .service-card.featured {
-    border-color: var(--fedex-purple);
+    border-color: var(--brand-purple);
 }
 
 .service-badge,
 .service-icon {
-    background: var(--fedex-purple);
+    background: var(--brand-purple);
 }
 
 .service-price,
@@ -371,11 +377,11 @@ body {
 .close:hover,
 .modal-footer a,
 .nav-link:hover {
-    color: var(--fedex-orange);
+    color: var(--brand-orange);
 }
 
 .social-links a:hover {
-    background: var(--fedex-purple);
+    background: var(--brand-purple);
 }
 
 @media (max-width: 900px) {
@@ -404,7 +410,7 @@ body {
         align-items: stretch;
         flex-direction: column;
         gap: 0;
-        background: var(--fedex-purple);
+        background: var(--brand-purple);
         box-shadow: 0 8px 15px rgba(20, 0, 40, 0.18);
     }
 
