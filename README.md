@@ -1,11 +1,11 @@
-# ATLAS Delivery - Complete Shipping Management System
+# FedEX Shipping - Complete Shipping Management System
 
-![ATLAS Delivery](https://img.shields.io/badge/ATLAS-Delivery-blue?style=for-the-badge&logo=truck)
+![FedEX Shipping](https://img.shields.io/badge/FedEX-Shipping-4d148c?style=for-the-badge&logo=truck)
 ![Node.js](https://img.shields.io/badge/Node.js-22.x-green?style=flat-square&logo=node.js)
 ![Express](https://img.shields.io/badge/Express-4.18-lightgrey?style=flat-square&logo=express)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green?style=flat-square&logo=mongodb)
 
-A modern, full-stack shipping and package tracking web application built for **ATLAS Delivery**. This platform provides real-time package tracking, shipping rate calculation, user authentication, and a complete admin dashboard for shipment management.
+A modern, full-stack shipping and package tracking web application built for **FedEX Shipping**. This platform provides real-time package tracking, shipping rate calculation, user authentication, and a complete admin dashboard for shipment management.
 
 ---
 
@@ -301,4 +301,4 @@ This project is licensed under the MIT License.
 
 ---
 
-**ATLAS Delivery** — Fast, Reliable Package Delivery Worldwide 🚚
+**FedEX Shipping** — Fast, Reliable Package Delivery Worldwide 🚚

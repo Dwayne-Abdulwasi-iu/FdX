@@ -2010,7 +2010,7 @@ function handleRegister(e) {
             currentUser = data.user;
             updateAuthUI();
             closeModal('registerModal');
-            showToast(`Welcome to ALD, ${data.user.firstName}!`, 'success');
+            showToast(`Welcome to FedEX, ${data.user.firstName}!`, 'success');
         } else {
             if (data.errors && data.errors.length > 0) {
                 data.errors.forEach(error => {

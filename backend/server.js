@@ -135,7 +135,7 @@ app.use((err, req, res, next) => {
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     success: true, 
-    message: 'ATLAS Delivery Server is running',
+    message: 'FedEX Shipping Server is running',
     timestamp: new Date().toISOString()
   });
 });
@@ -158,7 +158,7 @@ app.get('*', (req, res) => {
 const PORT = process.env.PORT || 3002;
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚚 ATLAS Delivery Server running on port ${PORT}`);
+    console.log(`🚚 FedEX Shipping Server running on port ${PORT}`);
     console.log(`📱 Frontend available at http://localhost:${PORT}`);
     console.log(`🔗 API available at http://localhost:${PORT}/api`);
 });module.exports = app;

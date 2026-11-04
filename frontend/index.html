@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATLAS Delivery - Fast, Reliable Package Delivery</title>
-    <meta name="description" content="ATLAS Delivery provides fast, reliable package delivery and tracking services. Ship packages worldwide with real-time tracking.">
-    <meta name="author" content="ATLAS Delivery Demo Platform">
+    <title>FedEX Shipping - Fast, Reliable Package Delivery</title>
+    <meta name="description" content="FedEX Shipping provides fast, reliable package delivery and tracking services. Ship packages worldwide with real-time tracking.">
+    <meta name="author" content="FedEX Shipping">
     <meta name="robots" content="index, follow">
-    <meta property="og:title" content="ATLAS Delivery - Demo Platform">
-    <meta property="og:description" content="Educational demo of a shipping platform. Not affiliated with ALD Corporation.">
+    <meta property="og:title" content="FedEX Shipping">
+    <meta property="og:description" content="Fast, reliable package delivery and real-time shipment tracking.">
     <meta property="og:type" content="website">
-    <meta name="disclaimer" content="This is a demo platform for educational purposes. Not affiliated with ALD Corporation.">
+    <meta name="disclaimer" content="FedEX Shipping is an independent shipping demo platform.">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/home-refresh.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,31 +22,18 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-logo">
-                <i class="fas fa-shipping-fast"></i>
-                <span>ALD</span>
-            </div>
+            <a class="nav-logo" href="#home" aria-label="FedEX home">
+                <span class="brand-fed">Fed</span><span class="brand-ex">EX</span>
+                <span class="brand-period">.</span>
+            </a>
             <ul class="nav-menu">
+                <li class="nav-item"><a href="#shipping" class="nav-link">Shipping <i class="fas fa-chevron-down"></i></a></li>
+                <li class="nav-item"><a href="#tracking" class="nav-link">Tracking <i class="fas fa-chevron-down"></i></a></li>
+                <li class="nav-item"><a href="#services" class="nav-link">Industry Solutions <i class="fas fa-chevron-down"></i></a></li>
+                <li class="nav-item"><a href="#contact" class="nav-link">Support <i class="fas fa-chevron-down"></i></a></li>
+                <li class="nav-item"><a href="#about" class="nav-link">About</a></li>
                 <li class="nav-item">
-                    <a href="#home" class="nav-link">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#services" class="nav-link">Services</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#tracking" class="nav-link">Track</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#shipping" class="nav-link">Ship</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#about" class="nav-link">About</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#contact" class="nav-link">Contact</a>
-                </li>
-                <li class="nav-item">
-                    <button class="btn-login" id="loginBtn">Login</button>
+                    <button class="btn-login" id="loginBtn">Sign Up / Log In <i class="far fa-user-circle"></i></button>
                 </li>
             </ul>
             <div class="hamburger">
@@ -60,33 +48,56 @@
     <section id="home" class="hero">
         <div class="hero-container">
             <div class="hero-content">
-                <h1 class="hero-title">Fast, Reliable Shipping Worldwide</h1>
-                <p class="hero-subtitle">Experience seamless package delivery with real-time tracking and competitive rates</p>
-                <p class="auth-notice"><i class="fas fa-user-lock"></i> Login required to access all shipping services</p>
-                <div class="hero-actions">
-                    <button class="btn-primary" id="shipNowBtn">Ship Now</button>
-                    <button class="btn-secondary" id="trackNowBtn">Track Package</button>
+                <h1 class="hero-title">Where now meets next.</h1>
+                <div class="hero-actions" aria-label="Shipping tools">
+                    <a class="hero-tab" href="#services"><i class="fas fa-boxes-stacked"></i><span>RATE &amp; TRANSIT<br> TIMES</span></a>
+                    <button class="hero-tab active" id="trackNowBtn" type="button"><i class="fas fa-box-open"></i><span>TRACK</span></button>
+                    <button class="hero-tab" id="shipNowBtn" type="button"><i class="fas fa-box"></i><span>SHIP</span></button>
                 </div>
-            </div>
-            <div class="hero-image">
-                <i class="fas fa-truck hero-icon"></i>
+                <div class="hero-track-form">
+                    <input type="text" id="quickTrackInput" placeholder="TRACKING ID" maxlength="20" aria-label="Tracking ID">
+                    <button id="quickTrackBtn" class="btn-track">TRACK <i class="fas fa-arrow-right"></i></button>
+                </div>
+                <p class="hero-login-note">Log in or sign up for a personalised shipping experience.</p>
             </div>
         </div>
     </section>
 
-    <!-- Quick Track Section -->
-    <section class="quick-track">
+    <section class="shipment-shortcuts" aria-labelledby="shipmentShortcutsTitle">
         <div class="container">
-            <div class="track-form">
-                <h3>Track Your Package</h3>
-                <p class="service-notice"><i class="fas fa-info-circle"></i> Please log in to track your packages</p>
-                <div class="track-input-group">
-                    <input type="text" id="quickTrackInput" placeholder="Enter tracking number (login required)" maxlength="20">
-                    <button id="quickTrackBtn" class="btn-track">
-                        <i class="fas fa-search"></i>
-                        Track
-                    </button>
-                </div>
+            <h2 id="shipmentShortcutsTitle">Manage Your Shipments</h2>
+            <div class="shortcut-grid">
+                <a class="shipment-shortcut" href="#contact"><i class="fas fa-triangle-exclamation"></i><span>Service alerts</span></a>
+                <a class="shipment-shortcut" href="#shipping"><i class="fas fa-rotate-left"></i><span>Return a package</span></a>
+                <a class="shipment-shortcut" href="#shipping"><i class="fas fa-box-open"></i><span>Drop off a package</span></a>
+                <a class="shipment-shortcut" href="#tracking"><i class="fas fa-boxes-stacked"></i><span>Advanced tracking</span></a>
+                <a class="shipment-shortcut" href="#shipping"><i class="fas fa-euro-sign"></i><span>Duties &amp; taxes</span></a>
+            </div>
+        </div>
+    </section>
+
+    <section class="helpful-resources" aria-labelledby="resourcesTitle">
+        <div class="container">
+            <h2 id="resourcesTitle">Time-saving tips, tools and resources</h2>
+            <div class="resource-grid">
+                <article class="resource-card">
+                    <img src="https://images.unsplash.com/photo-1556742059-47b932d96a41?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Small business owner working at a counter">
+                    <h3>Supporting small businesses</h3>
+                    <p>Find practical tools and insights to help your business keep moving.</p>
+                    <a href="#about">GO TO SMALL BUSINESS HUB</a>
+                </article>
+                <article class="resource-card">
+                    <img src="https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Sustainable energy landscape">
+                    <h3>Understand your emissions footprint</h3>
+                    <p>Explore smarter shipping choices and learn about your delivery footprint.</p>
+                    <a href="#services">EXPLORE MORE</a>
+                </article>
+                <article class="resource-card">
+                    <img src="https://images.unsplash.com/photo-1607082349566-187342175e2f?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="A person packing a parcel at home">
+                    <h3>New to FedEX?</h3>
+                    <p>Our customer guide walks you through every step of shipping with FedEX.</p>
+                    <a href="#shipping">GET STARTED</a>
+                </article>
             </div>
         </div>
     </section>
@@ -264,8 +275,8 @@
         <div class="container">
             <div class="about-content">
                 <div class="about-text">
-                    <h2>About ATLAS Delivery</h2>
-                    <p>Founded with a mission to revolutionize package delivery, ATLAS Delivery has been connecting people and businesses worldwide for over a decade. We combine cutting-edge technology with exceptional customer service to provide reliable, fast, and affordable shipping solutions.</p>
+                    <h2>About FedEX Shipping</h2>
+                    <p>Founded with a mission to make shipping simple, FedEX Shipping connects people and businesses with reliable, fast, and affordable delivery solutions.</p>
                     
                     <div class="stats-grid">
                         <div class="stat-item">
@@ -287,7 +298,7 @@
                     </div>
                 </div>
                 <div class="about-features">
-                    <h3>Why Choose ALD?</h3>
+                    <h3>Why Choose FedEX?</h3>
                     <div class="features-list">
                         <div class="feature-item">
                             <i class="fas fa-shield-alt"></i>
@@ -337,7 +348,7 @@
                         <i class="fas fa-phone"></i>
                         <div>
                             <h4>Phone</h4>
-                            <p>1-800-ATLAS-1</p>
+                            <p>1-800-FEDEX-1</p>
                             <p>(1-800-285-2781)</p>
                         </div>
                     </div>
@@ -345,8 +356,8 @@
                         <i class="fas fa-envelope"></i>
                         <div>
                             <h4>Email</h4>
-                            <p>support@ALD.com</p>
-                            <p>sales@ALD.com</p>
+                            <p>support@fedex.example</p>
+                            <p>sales@fedex.example</p>
                         </div>
                     </div>
                     <div class="contact-item">
@@ -409,7 +420,7 @@
                 <div class="footer-section">
                     <div class="footer-logo">
                         <i class="fas fa-shipping-fast"></i>
-                        <span>ALD</span>
+                        <span>FedEX</span>
                     </div>
                     <p>Fast, reliable shipping worldwide with real-time tracking and competitive rates.</p>
                     <div class="social-links">
@@ -448,7 +459,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 ATLAS Delivery. All rights reserved.</p>
+                <p>&copy; 2026 FedEX Shipping. All rights reserved.</p>
             </div>
         </div>
     </footer>
