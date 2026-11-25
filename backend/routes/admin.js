@@ -321,6 +321,10 @@ router.post('/email/send-selected', [
   body('trackingNumber').optional({ values: 'falsy' }).trim().isLength({ max: 20 })
     .withMessage('Tracking number cannot exceed 20 characters')
 ], async (req, res) => {
+  console.info('Selected-user email request received:', {
+    recipientCount: Array.isArray(req.body.userIds) ? req.body.userIds.length : 0
+  });
+
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -353,6 +357,12 @@ router.post('/email/send-selected', [
       message: req.body.message,
       status: req.body.status || undefined,
       trackingNumber: req.body.trackingNumber || undefined
+    });
+    console.info('Selected-user email delivery result:', {
+      sent: result.sent,
+      failed: result.failed,
+      total: recipients.length,
+      errorCodes: Object.keys(result.errorCodes || {})
     });
 
     if (result.sent === 0) {

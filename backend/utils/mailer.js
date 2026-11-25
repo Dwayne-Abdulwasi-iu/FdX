@@ -127,7 +127,7 @@ async function sendBulkEmail({ recipients, subject, message, trackingNumber, sta
       });
       sent++;
     } catch (error) {
-      console.error(`Bulk email failed for ${recipient.email}:`, {
+      console.error('Bulk email delivery failed:', {
         message: error.message,
         code: error.code,
         command: error.command
