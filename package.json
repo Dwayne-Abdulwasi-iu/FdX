@@ -1,0 +1,41 @@
+{
+  "name": "fedex-shipping",
+  "version": "1.0.0",
+  "description": "FDX Shipping - A comprehensive shipping and package tracking website",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "test": "jest",
+    "build": "npm install",
+    "render-build": "npm install"
+  },
+  "keywords": [
+    "shipping",
+    "tracking",
+    "logistics",
+    "express",
+    "nodejs"
+  ],
+  "author": "FDX Shipping",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.10.0",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.5.0",
+    "nodemailer": "^10.6.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
