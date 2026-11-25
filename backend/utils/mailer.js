@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 
 function createTransport() {
   const host = process.env.SMTP_HOST;
-  const port = parseInt(process.env.SMTP_PORT || '587', 10);
+  const port = Number.parseInt(process.env.SMTP_PORT || '465', 10);
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
 
@@ -12,11 +12,20 @@ function createTransport() {
     throw error;
   }
 
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    const error = new Error('SMTP_PORT must be a valid TCP port number.');
+    error.statusCode = 503;
+    throw error;
+  }
+
   return nodemailer.createTransport({
     host,
     port,
     secure: process.env.SMTP_SECURE === 'true' || port === 465,
-    auth: { user, pass }
+    auth: { user, pass },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 30000
   });
 }
 
@@ -117,7 +126,11 @@ async function sendBulkEmail({ recipients, subject, message }) {
       });
       sent++;
     } catch (error) {
-      console.error(`Bulk email failed for ${recipient.email}:`, error.message);
+      console.error(`Bulk email failed for ${recipient.email}:`, {
+        message: error.message,
+        code: error.code,
+        command: error.command
+      });
       failed++;
     }
   }

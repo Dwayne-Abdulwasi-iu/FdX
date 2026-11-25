@@ -97,8 +97,8 @@ ADMIN_KEY=replace-with-a-random-admin-key
 
 # Gmail SMTP (use a Gmail App Password)
 SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false
+SMTP_PORT=465
+SMTP_SECURE=true
 SMTP_USER=your-gmail-address@gmail.com
 SMTP_PASS=your-16-character-gmail-app-password
 SMTP_FROM=your-gmail-address@gmail.com
@@ -241,7 +241,8 @@ This project is configured for deployment on **Render**.
    - `JWT_SECRET=<strong-secret>`
    - `ADMIN_KEY=<your-admin-key>`
    - `SMTP_HOST=smtp.gmail.com`
-   - `SMTP_PORT=587`
+   - `SMTP_PORT=465`
+   - `SMTP_SECURE=true`
    - `SMTP_USER=<your-gmail-address>`
    - `SMTP_PASS=<your-gmail-app-password>`
    - `SMTP_FROM=<your-gmail-address>`
