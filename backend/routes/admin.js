@@ -3,6 +3,7 @@ const { body, param, validationResult } = require('express-validator');
 const Shipment = require('../models/Shipment');
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
+const { sendBulkEmail } = require('../utils/mailer');
 
 const router = express.Router();
 
@@ -162,7 +163,7 @@ router.put('/shipments/:id/status', [
     // Add to history
     shipment.status.history.push({
       status,
-      location: location || 'FedEX Facility',
+      location: location || 'FDX Facility',
       timestamp: new Date(),
       description: description || `Status updated to ${status}`,
       updatedBy: req.user._id
@@ -262,6 +263,114 @@ router.get('/users', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching users'
+    });
+  }
+});
+
+// Search registered users for the admin email recipient picker
+router.get('/email/recipients', async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const search = String(req.query.search || '').trim();
+    if (search.length > 100) {
+      return res.status(400).json({ success: false, message: 'Search text cannot exceed 100 characters' });
+    }
+
+    const filter = {};
+    if (search) {
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter.$or = [
+        { firstName: new RegExp(escapedSearch, 'i') },
+        { lastName: new RegExp(escapedSearch, 'i') },
+        { email: new RegExp(escapedSearch, 'i') }
+      ];
+    }
+
+    const [users, total] = await Promise.all([
+      User.find(filter)
+        .select('firstName lastName email role')
+        .sort({ firstName: 1, lastName: 1, _id: 1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      User.countDocuments(filter)
+    ]);
+
+    res.json({
+      success: true,
+      users,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) }
+    });
+  } catch (error) {
+    console.error('Email recipient search error:', error);
+    res.status(500).json({ success: false, message: 'Error searching registered users' });
+  }
+});
+
+// Send a branded email only to the registered users selected by the admin
+router.post('/email/send-selected', [
+  body('userIds').isArray({ min: 1, max: 100 }).withMessage('Select between 1 and 100 users'),
+  body('userIds.*').isMongoId().withMessage('Invalid user ID'),
+  body('subject').trim().notEmpty().isLength({ max: 200 }).withMessage('Subject is required'),
+  body('message').trim().notEmpty().isLength({ max: 5000 }).withMessage('Message is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation errors',
+        errors: errors.array()
+      });
+    }
+
+    const userIds = [...new Set(req.body.userIds)];
+    const users = await User.find({ _id: { $in: userIds } })
+      .select('firstName lastName email')
+      .lean();
+    if (users.length !== userIds.length) {
+      return res.status(404).json({
+        success: false,
+        message: 'One or more selected users could not be found'
+      });
+    }
+
+    const recipients = users.map(user => ({
+      email: user.email,
+      name: `${user.firstName || ''} ${user.lastName || ''}`.trim()
+    }));
+
+    const result = await sendBulkEmail({
+      recipients,
+      subject: req.body.subject,
+      message: req.body.message
+    });
+
+    if (result.sent === 0) {
+      return res.status(502).json({
+        success: false,
+        message: 'Email could not be delivered to any selected user',
+        sent: result.sent,
+        failed: result.failed,
+        total: recipients.length
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Email sent to ${result.sent} selected user${result.sent === 1 ? '' : 's'}${result.failed ? `; ${result.failed} failed` : ''}`,
+      sent: result.sent,
+      failed: result.failed,
+      total: recipients.length
+    });
+  } catch (error) {
+    console.error('Selected-user email error:', error);
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode === 503
+        ? error.message
+        : 'Error sending email to selected users'
     });
   }
 });

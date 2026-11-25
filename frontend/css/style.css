@@ -4094,6 +4094,179 @@ p {
     background: linear-gradient(135deg, #16a085, #1abc9c);
 }
 
+/* FDX Email Center */
+.email-center-modal {
+    max-width: 760px;
+    width: 94%;
+    max-height: 92vh;
+    overflow-y: auto;
+}
+
+.email-center-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.email-center-section {
+    background: #fff;
+    border: 1px solid #e8eaf0;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.email-center-section h3 {
+    margin: 0 0 8px;
+    color: #312e81;
+}
+
+.email-center-note {
+    margin: 0 0 16px;
+    color: #667085;
+    font-size: 0.9rem;
+}
+
+.email-movement-template.status-template-pending,
+.email-movement-template option[value="pending"] {
+    color: #805b00;
+    background-color: #fff4cc;
+}
+
+.email-movement-template.status-template-confirmed,
+.email-movement-template option[value="confirmed"] {
+    color: #176b3a;
+    background-color: #e2f5e9;
+}
+
+.email-movement-template.status-template-exception,
+.email-movement-template option[value="exception"] {
+    color: #a32121;
+    background-color: #fde8e7;
+}
+
+.email-movement-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 9px 11px;
+    border: 1px solid currentColor;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.email-movement-status[hidden] {
+    display: none;
+}
+
+.email-movement-status.status-template-pending {
+    color: #805b00;
+    background: #fff4cc;
+}
+
+.email-movement-status.status-template-confirmed {
+    color: #176b3a;
+    background: #e2f5e9;
+}
+
+.email-movement-status.status-template-exception {
+    color: #a32121;
+    background: #fde8e7;
+}
+
+.email-recipient-toolbar,
+.email-recipient-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.email-recipient-toolbar button,
+.email-recipient-pagination button {
+    padding: 7px 10px;
+    border: 1px solid #d5d9e2;
+    border-radius: 6px;
+    background: #fff;
+    color: #4d148c;
+    cursor: pointer;
+}
+
+.email-recipient-toolbar button:disabled,
+.email-recipient-pagination button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.email-recipient-results {
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid #e8eaf0;
+    border-radius: 7px;
+}
+
+.email-recipient-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-bottom: 1px solid #edf0f4;
+    cursor: pointer;
+}
+
+.email-recipient-option:last-child {
+    border-bottom: 0;
+}
+
+.email-recipient-details {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    gap: 3px;
+}
+
+.email-recipient-details span {
+    color: #667085;
+    overflow-wrap: anywhere;
+    font-size: 0.85rem;
+}
+
+.email-recipient-role {
+    color: #667085;
+    font-size: 0.8rem;
+    text-transform: capitalize;
+}
+
+.email-recipient-empty,
+.email-recipient-count,
+.email-recipient-selected {
+    margin: 10px 0;
+    color: #667085;
+    font-size: 0.85rem;
+}
+
+.email-recipient-empty {
+    padding: 10px;
+    text-align: center;
+}
+
+.email-recipient-selected {
+    max-height: 70px;
+    overflow-y: auto;
+    overflow-wrap: anywhere;
+}
+
+.email-center-submit {
+    width: 100%;
+}
+
+.email-held-option {
+    display: block;
+    margin: 4px 0 14px;
+}
+
 /* Admin Actions */
 .admin-actions {
     display: grid;

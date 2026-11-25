@@ -144,6 +144,10 @@
 let isAuthenticated = false;
 let currentUser = null;
 let authToken = localStorage.getItem('authToken');
+let emailRecipientPage = 1;
+let emailRecipientPageUsers = [];
+let emailRecipientSelections = new Map();
+let emailRecipientSearchTimeout;
 
 // Block all services by default until authentication is verified
 let servicesBlocked = true;
@@ -510,6 +514,9 @@ function initializeEventListeners() {
                     break;
                 case 'showAdminDashboard':
                     showAdminDashboard();
+                    break;
+                case 'showEmailCenter':
+                    showEmailCenter();
                     break;
                 case 'toggleHistoryUpdate':
                     const detailsId = target.getAttribute('data-details-id');
@@ -2010,7 +2017,7 @@ function handleRegister(e) {
             currentUser = data.user;
             updateAuthUI();
             closeModal('registerModal');
-            showToast(`Welcome to fdX SHIPPING, ${data.user.firstName}!`, 'success');
+            showToast(`Welcome to FDX SHIPPING, ${data.user.firstName}!`, 'success');
         } else {
             if (data.errors && data.errors.length > 0) {
                 data.errors.forEach(error => {
@@ -2642,6 +2649,7 @@ function displayAdminShipments(shipments) {
                         <option value="out_for_delivery">Out for Delivery</option>
                         <option value="delivered">Delivered</option>
                         <option value="exception">Exception</option>
+                        <option value="returned">Returned</option>
                     </select>
                     <button data-action="searchShipments" class="search-shipments-btn">
                         <i class="fas fa-search"></i> Search
@@ -2763,6 +2771,13 @@ function showStatusUpdateModal(trackingNumber) {
                         <label>Hold Reason</label>
                         <textarea name="holdReason" rows="2" placeholder="Reason for holding package"></textarea>
                     </div>
+
+                    <div class="form-group">
+                        <label class="form-label-checkbox">
+                            <input type="checkbox" name="sendNotification" checked>
+                            Email package update to the recipient
+                        </label>
+                    </div>
                     
                     <div class="form-actions">
                         <button type="button" data-action="showAdminDashboard" class="btn-secondary btn-margin-right">Cancel</button>
@@ -2827,7 +2842,8 @@ async function handleStatusUpdate(e) {
         vehicleId: formData.get('vehicleId') || null,
         estimatedArrival: formData.get('estimatedArrival') || null,
         isHeld: isHeld,
-        holdReason: isHeld ? holdReason.trim() : null
+        holdReason: isHeld ? holdReason.trim() : null,
+        sendNotification: formData.get('sendNotification') === 'on'
     };
     
     console.log('Updating status for:', trackingNumber, updateData);
@@ -2849,7 +2865,10 @@ async function handleStatusUpdate(e) {
             const statusMessage = isHeld ? 
                 'Shipment updated successfully - Package is now held' : 
                 'Shipment updated successfully';
-            showToast(statusMessage, 'success');
+            const notificationMessage = data.notificationSent
+                ? `${statusMessage}. Recipient notified by email.`
+                : statusMessage;
+            showToast(notificationMessage, 'success');
             closeModal('statusUpdateModal');
             document.getElementById('statusUpdateModal').remove();
             loadAdminShipments(); // Refresh the list
@@ -4151,6 +4170,302 @@ async function verifyAllUsers() {
     }
 }
 
+function showEmailCenter() {
+    closeModal('adminModal');
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'emailCenterModal';
+    modal.innerHTML = `
+        <div class="modal-content email-center-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-envelope-open-text"></i> FDX Email Center</h2>
+                <span class="close" data-close-modal="emailCenterModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="email-center-grid">
+                    <section class="email-center-section">
+                        <h3><i class="fas fa-bullhorn"></i> Email Selected Users</h3>
+                        <p class="email-center-note">Search registered accounts and select only the people who should receive this message. Sending an email does not change any shipment information.</p>
+                        <form id="bulkEmailForm">
+                            <div class="form-group">
+                                <label for="emailRecipientSearch">Find users</label>
+                                <input type="search" id="emailRecipientSearch" maxlength="100" placeholder="Search by name or email">
+                            </div>
+                            <div class="email-recipient-toolbar">
+                                <button type="button" class="btn-secondary" id="selectVisibleEmailRecipients">Select shown</button>
+                                <button type="button" class="btn-secondary" id="clearEmailRecipients">Clear selection</button>
+                            </div>
+                            <div id="emailRecipientResults" class="email-recipient-results" aria-live="polite">
+                                <p class="email-recipient-empty">Loading registered users...</p>
+                            </div>
+                            <div class="email-recipient-pagination">
+                                <button type="button" class="btn-secondary" id="emailRecipientsPrevious" disabled>Previous</button>
+                                <span id="emailRecipientsPageLabel">Page 1</span>
+                                <button type="button" class="btn-secondary" id="emailRecipientsNext" disabled>Next</button>
+                            </div>
+                            <p id="emailRecipientSelectionCount" class="email-recipient-count" aria-live="polite">0 users selected</p>
+                            <div id="emailRecipientSelectionList" class="email-recipient-selected"></div>
+                            <div class="form-group">
+                                <label for="emailMovementTemplate">Optional shipment email template</label>
+                                <select id="emailMovementTemplate" class="email-movement-template">
+                                    <option value="">Custom message</option>
+                                    <option value="pending">Pending - Processing</option>
+                                    <option value="confirmed">Accepted / Confirmed</option>
+                                    <option value="picked_up">Picked Up</option>
+                                    <option value="in_transit">In Transit</option>
+                                    <option value="out_for_delivery">Out for Delivery</option>
+                                    <option value="delivered">Delivered</option>
+                                    <option value="exception">⚠ Exception / Held</option>
+                                    <option value="returned">Returned</option>
+                                </select>
+                                <div id="emailMovementStatusIndicator" class="email-movement-status" hidden aria-live="polite"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="emailTemplateTrackingNumber">Tracking number (optional)</label>
+                                <input type="text" id="emailTemplateTrackingNumber" maxlength="20" placeholder="Include a tracking number in the email">
+                            </div>
+                            <div class="form-group">
+                                <label for="bulkEmailSubject">Subject *</label>
+                                <input type="text" id="bulkEmailSubject" name="subject" maxlength="200" required placeholder="Important FDX shipping update">
+                            </div>
+                            <div class="form-group">
+                                <label for="bulkEmailMessage">Message *</label>
+                                <textarea id="bulkEmailMessage" name="message" rows="8" maxlength="5000" required placeholder="Write your announcement here..."></textarea>
+                            </div>
+                            <button type="submit" class="btn-primary email-center-submit">
+                                <i class="fas fa-paper-plane"></i> Send Email
+                            </button>
+                        </form>
+                    </section>
+                </div>
+            </div>
+        </div>
+    `;
+
+    emailRecipientPage = 1;
+    emailRecipientPageUsers = [];
+    emailRecipientSelections = new Map();
+    document.body.appendChild(modal);
+    showModal('emailCenterModal');
+
+    document.getElementById('emailRecipientSearch').addEventListener('input', () => {
+        clearTimeout(emailRecipientSearchTimeout);
+        emailRecipientSearchTimeout = setTimeout(() => loadEmailRecipients(1), 250);
+    });
+    document.getElementById('emailRecipientResults').addEventListener('change', (event) => {
+        const checkbox = event.target.closest('input[data-email-user-id]');
+        if (!checkbox) return;
+        const user = emailRecipientPageUsers.find(item => item._id === checkbox.dataset.emailUserId);
+        if (checkbox.checked && user) {
+            if (emailRecipientSelections.size >= 100) {
+                checkbox.checked = false;
+                showToast('You can select up to 100 users per email', 'warning');
+                return;
+            }
+            emailRecipientSelections.set(user._id, user);
+        } else {
+            emailRecipientSelections.delete(checkbox.dataset.emailUserId);
+        }
+        updateEmailRecipientSelection();
+    });
+    document.getElementById('selectVisibleEmailRecipients').addEventListener('click', () => {
+        for (const user of emailRecipientPageUsers) {
+            if (!emailRecipientSelections.has(user._id) && emailRecipientSelections.size >= 100) {
+                showToast('You can select up to 100 users per email', 'warning');
+                break;
+            }
+            emailRecipientSelections.set(user._id, user);
+        }
+        renderEmailRecipientResults();
+        updateEmailRecipientSelection();
+    });
+    document.getElementById('clearEmailRecipients').addEventListener('click', () => {
+        emailRecipientSelections.clear();
+        renderEmailRecipientResults();
+        updateEmailRecipientSelection();
+    });
+    document.getElementById('emailRecipientsPrevious').addEventListener('click', () => {
+        if (emailRecipientPage > 1) loadEmailRecipients(emailRecipientPage - 1);
+    });
+    document.getElementById('emailRecipientsNext').addEventListener('click', () => {
+        loadEmailRecipients(emailRecipientPage + 1);
+    });
+
+    document.getElementById('bulkEmailForm').addEventListener('submit', sendBulkEmailFromAdmin);
+    document.getElementById('emailMovementTemplate').addEventListener('change', applyEmailMovementTemplate);
+    loadEmailRecipients();
+}
+
+function applyEmailMovementTemplate(event) {
+    const status = event.target.value;
+    const statusLabels = {
+        pending: 'Pending',
+        confirmed: 'Accepted / Confirmed',
+        picked_up: 'Picked Up',
+        in_transit: 'In Transit',
+        out_for_delivery: 'Out for Delivery',
+        delivered: 'Delivered',
+        exception: 'Exception / Held',
+        returned: 'Returned'
+    };
+    const indicator = document.getElementById('emailMovementStatusIndicator');
+    const select = event.target;
+    select.classList.remove('status-template-pending', 'status-template-confirmed', 'status-template-exception');
+    if (!status) {
+        indicator.hidden = true;
+        indicator.textContent = '';
+        return;
+    }
+
+    const label = statusLabels[status];
+    const indicatorStyles = {
+        pending: { className: 'status-template-pending', icon: 'fa-clock', text: 'Pending - awaiting processing' },
+        confirmed: { className: 'status-template-confirmed', icon: 'fa-circle-check', text: 'Accepted / confirmed' },
+        exception: { className: 'status-template-exception', icon: 'fa-triangle-exclamation', text: 'Exception / held - action may be required' }
+    };
+    const indicatorStyle = indicatorStyles[status];
+    if (indicatorStyle) {
+        select.classList.add(indicatorStyle.className);
+        indicator.className = `email-movement-status ${indicatorStyle.className}`;
+        indicator.innerHTML = `<i class="fas ${indicatorStyle.icon}" aria-hidden="true"></i><span>${indicatorStyle.text}</span>`;
+        indicator.hidden = false;
+    } else {
+        indicator.hidden = true;
+        indicator.textContent = '';
+    }
+
+    const trackingNumber = document.getElementById('emailTemplateTrackingNumber').value.trim();
+    const subject = document.getElementById('bulkEmailSubject');
+    const message = document.getElementById('bulkEmailMessage');
+
+    subject.value = `FDX shipment update: ${label}`;
+    message.value = `We are writing to let you know that your package status is: ${label}.${trackingNumber ? `\n\nTracking number: ${trackingNumber}` : ''}\n\nFor assistance, please contact FDX SHIPPING support.`;
+}
+
+async function loadEmailRecipients(page = 1) {
+    const results = document.getElementById('emailRecipientResults');
+    if (!results) return;
+    authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+        results.innerHTML = '<p class="email-recipient-empty">Your admin session has expired. Log in again to select recipients.</p>';
+        showToast('Your admin session has expired. Please log in again.', 'error');
+        return;
+    }
+    results.innerHTML = '<p class="email-recipient-empty">Loading registered users...</p>';
+
+    const params = new URLSearchParams({
+        page: String(page),
+        limit: '20',
+        search: document.getElementById('emailRecipientSearch').value.trim()
+    });
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/admin/email/recipients?${params}`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Unable to load registered users');
+        }
+        emailRecipientPage = data.pagination.page;
+        emailRecipientPageUsers = data.users;
+        renderEmailRecipientResults();
+
+        document.getElementById('emailRecipientsPageLabel').textContent =
+            `Page ${data.pagination.page} of ${Math.max(1, data.pagination.pages)} (${data.pagination.total} users)`;
+        document.getElementById('emailRecipientsPrevious').disabled = data.pagination.page <= 1;
+        document.getElementById('emailRecipientsNext').disabled =
+            data.pagination.page >= data.pagination.pages;
+    } catch (error) {
+        console.error('Email recipient search error:', error);
+        results.innerHTML = '<p class="email-recipient-empty">Could not load users. Try again.</p>';
+        showToast(error.message || 'Could not load registered users', 'error');
+    }
+}
+
+function renderEmailRecipientResults() {
+    const results = document.getElementById('emailRecipientResults');
+    if (!results) return;
+    if (emailRecipientPageUsers.length === 0) {
+        results.innerHTML = '<p class="email-recipient-empty">No registered users match your search.</p>';
+        return;
+    }
+
+    const escapeHtml = value => String(value || '').replace(/[&<>"']/g, character => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    })[character]);
+    results.innerHTML = emailRecipientPageUsers.map(user => `
+        <label class="email-recipient-option">
+            <input type="checkbox" data-email-user-id="${escapeHtml(user._id)}" ${emailRecipientSelections.has(user._id) ? 'checked' : ''}>
+            <span class="email-recipient-details">
+                <strong>${escapeHtml(`${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Registered user')}</strong>
+                <span>${escapeHtml(user.email)}</span>
+            </span>
+            <span class="email-recipient-role">${escapeHtml(user.role || 'user')}</span>
+        </label>
+    `).join('');
+}
+
+function updateEmailRecipientSelection() {
+    const count = document.getElementById('emailRecipientSelectionCount');
+    const selected = document.getElementById('emailRecipientSelectionList');
+    if (!count || !selected) return;
+
+    const recipients = [...emailRecipientSelections.values()];
+    count.textContent = `${recipients.length} user${recipients.length === 1 ? '' : 's'} selected`;
+    selected.textContent = recipients.length
+        ? `Selected: ${recipients.map(user => `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email).join(', ')}`
+        : 'Select one or more users above.';
+}
+
+async function sendBulkEmailFromAdmin(event) {
+    event.preventDefault();
+    if (emailRecipientSelections.size === 0) {
+        showToast('Select at least one recipient', 'warning');
+        return;
+    }
+    authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+        showToast('Your admin session has expired. Please log in again.', 'error');
+        showLoginModal();
+        return;
+    }
+    showLoading(true);
+
+    const formData = new FormData(event.target);
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/admin/email/send-selected`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userIds: [...emailRecipientSelections.keys()],
+                subject: formData.get('subject'),
+                message: formData.get('message')
+            })
+        });
+        const data = await response.json();
+        if (data.success) {
+            showToast(data.message, 'success');
+            document.getElementById('bulkEmailSubject').value = '';
+            document.getElementById('bulkEmailMessage').value = '';
+        } else {
+            showToast(data.message || 'Error sending email', 'error');
+        }
+    } catch (error) {
+        console.error('Bulk email error:', error);
+        showToast('Error sending email', 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
 function displayAdminDashboard(stats) {
     const modal = document.createElement('div');
     modal.className = 'modal';
@@ -4219,6 +4534,10 @@ function displayAdminDashboard(stats) {
                     </div>
                 </div>
                 <div class="admin-actions">
+                    <button data-action="showEmailCenter" class="admin-btn email-btn">
+                        <i class="fas fa-envelope-open-text"></i>
+                        <span>Email Selected Users</span>
+                    </button>
                     <button data-action="loadAdminShipments" class="admin-btn shipments-btn">
                         <i class="fas fa-boxes"></i>
                         <span>Manage Shipments</span>
