@@ -1,11 +1,11 @@
 
 
-- # FedeX Shipping Website Project
+- # FDX Shipping Website Project
 
-This is a shipping company website for FedeX Shipping that provides package tracking and shipping functionality.
+This is a shipping company website for FDX Shipping that provides package tracking and shipping functionality.
 
 ## Project Overview
-- **Company**: FedeX Shipping
+- **Company**: FDX Shipping
 - **Type**: Full-stack web application
 - **Technology Stack**: Node.js, Express, MongoDB, HTML/CSS/JavaScript
 - **Features**: Package tracking, shipping rates, user authentication, admin dashboard

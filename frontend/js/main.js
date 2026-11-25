@@ -1571,7 +1571,7 @@ function displayTrackingResults(tracking) {
                                 <i class="fas fa-${getStatusIcon(item.status)}"></i>
                             </div>
                             <div class="update-title">
-                                <h4>${formatStatus(item.status)} ${item.isHeld ? '<span class="hold-badge">HELD</span>' : ''}</h4>
+                                <h4>${formatShipmentStatus(item.status, item.isHeld)}</h4>
                                 <p class="update-timestamp">
                                     <i class="fas fa-clock"></i> ${timestamp}
                                     ${item.location ? ` • <i class="fas fa-map-marker-alt"></i> ${item.location}` : ''}
@@ -1662,7 +1662,7 @@ function displayTrackingResults(tracking) {
     resultsDiv.innerHTML = `
         <div class="tracking-status">
             <div class="status-main">
-                <h3>Package Status: ${formatStatus(tracking.status.current)} ${isCurrentlyHeld ? '<span class="hold-badge">HELD</span>' : ''}</h3>
+                <h3>Package Status: ${formatShipmentStatus(tracking.status.current, isCurrentlyHeld)}</h3>
                 <p><strong>Tracking #:</strong> ${tracking.trackingNumber}</p>
                 <p><strong>To:</strong> ${tracking.recipient.name}, ${tracking.recipient.city}, ${tracking.recipient.state}</p>
             </div>
@@ -1794,7 +1794,7 @@ function getTransportIcon(transportType) {
 function formatStatus(status) {
     const statusMap = {
         'pending': 'Pending',
-        'confirmed': 'Confirmed',
+        'confirmed': 'Accepted / Confirmed',
         'picked_up': 'Picked Up',
         'in_transit': 'In Transit',
         'out_for_delivery': 'Out for Delivery',
@@ -1803,6 +1803,28 @@ function formatStatus(status) {
         'returned': 'Returned'
     };
     return statusMap[status] || status;
+}
+
+function formatShipmentStatus(status, isHeld = false) {
+    const statusDetails = {
+        pending: { label: 'Pending', icon: 'fa-clock' },
+        confirmed: { label: 'Accepted / Confirmed', icon: 'fa-circle-check' },
+        picked_up: { label: 'Picked Up', icon: 'fa-box' },
+        in_transit: { label: 'In Transit', icon: 'fa-truck-fast' },
+        out_for_delivery: { label: 'Out for Delivery', icon: 'fa-truck' },
+        delivered: { label: 'Delivered', icon: 'fa-circle-check' },
+        exception: { label: 'Exception', icon: 'fa-triangle-exclamation' },
+        returned: { label: 'Returned', icon: 'fa-rotate-left' }
+    };
+    const details = statusDetails[status] || { label: formatStatus(status), icon: 'fa-circle-info' };
+    const statusClass = statusDetails[status] ? status : 'unknown';
+    const label = isHeld ? `${details.label} / Held` : details.label;
+    const icon = isHeld ? 'fa-triangle-exclamation' : details.icon;
+
+    return `<span class="shipment-status-badge shipment-status-${statusClass}${isHeld ? ' is-held' : ''}" role="status" aria-label="${label}">
+        <i class="fas ${icon}" aria-hidden="true"></i>
+        <span>${label}</span>
+    </span>`;
 }
 
 // Apply dynamic colors for status and priority badges
@@ -2308,7 +2330,6 @@ function displayMyShipments(shipments) {
                     <div class="shipments-list">
                         ${shipments.map(shipment => {
                             const statusClass = getStatusClass(shipment.status.current);
-                            const statusIcon = getStatusIcon(shipment.status.current);
                             const lastUpdate = shipment.status.history && shipment.status.history.length > 0 
                                 ? shipment.status.history[shipment.status.history.length - 1] 
                                 : null;
@@ -2318,11 +2339,7 @@ function displayMyShipments(shipments) {
                                     <div class="shipment-header">
                                         <div class="tracking-info">
                                             <h3><i class="fas fa-barcode"></i> ${shipment.trackingNumber}</h3>
-                                            <div class="status-badge ${statusClass}">
-                                                <i class="fas fa-${statusIcon}"></i>
-                                                ${formatStatus(shipment.status.current)}
-                                                ${lastUpdate?.isHeld ? '<span class="hold-indicator">HELD</span>' : ''}
-                                            </div>
+                                            ${formatShipmentStatus(shipment.status.current, lastUpdate?.isHeld)}
                                         </div>
                                         <div class="shipment-actions">
                                             <button data-action="trackPackage" data-param="${shipment.trackingNumber}" class="btn-track">
@@ -2663,7 +2680,7 @@ function displayAdminShipments(shipments) {
                                     <h4 class="tracking-number">${shipment.trackingNumber}</h4>
                                     <p class="shipment-detail"><strong>From:</strong> ${shipment.sender?.name || 'N/A'}</p>
                                     <p class="shipment-detail"><strong>To:</strong> ${shipment.recipient.name}</p>
-                                    <p class="shipment-detail"><strong>Status:</strong> <span class="status-badge status-${shipment.status.current}">${formatStatus(shipment.status.current)}</span></p>
+                                    <p class="shipment-detail"><strong>Status:</strong> ${formatShipmentStatus(shipment.status.current, shipment.status.history?.[shipment.status.history.length - 1]?.isHeld)}</p>
                                     <p class="shipment-detail"><strong>Service:</strong> ${shipment.service.type.toUpperCase()}</p>
                                     ${shipment.status.history && shipment.status.history.length > 0 ? `
                                         <p class="shipment-detail"><strong>Last Update:</strong> ${shipment.status.history[shipment.status.history.length - 1].location || 'Processing Center'}</p>
@@ -4311,7 +4328,8 @@ function applyEmailMovementTemplate(event) {
     };
     const indicator = document.getElementById('emailMovementStatusIndicator');
     const select = event.target;
-    select.classList.remove('status-template-pending', 'status-template-confirmed', 'status-template-exception');
+    const movementStatuses = ['pending', 'confirmed', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered', 'exception', 'returned'];
+    select.classList.remove(...movementStatuses.map(value => `status-template-${value}`));
     if (!status) {
         indicator.hidden = true;
         indicator.textContent = '';
@@ -4322,18 +4340,18 @@ function applyEmailMovementTemplate(event) {
     const indicatorStyles = {
         pending: { className: 'status-template-pending', icon: 'fa-clock', text: 'Pending - awaiting processing' },
         confirmed: { className: 'status-template-confirmed', icon: 'fa-circle-check', text: 'Accepted / confirmed' },
-        exception: { className: 'status-template-exception', icon: 'fa-triangle-exclamation', text: 'Exception / held - action may be required' }
+        picked_up: { className: 'status-template-picked_up', icon: 'fa-box', text: 'Picked up' },
+        in_transit: { className: 'status-template-in_transit', icon: 'fa-truck-fast', text: 'In transit' },
+        out_for_delivery: { className: 'status-template-out_for_delivery', icon: 'fa-truck', text: 'Out for delivery' },
+        delivered: { className: 'status-template-delivered', icon: 'fa-circle-check', text: 'Delivered' },
+        exception: { className: 'status-template-exception', icon: 'fa-triangle-exclamation', text: 'Exception / held - action may be required' },
+        returned: { className: 'status-template-returned', icon: 'fa-rotate-left', text: 'Returned' }
     };
     const indicatorStyle = indicatorStyles[status];
-    if (indicatorStyle) {
-        select.classList.add(indicatorStyle.className);
-        indicator.className = `email-movement-status ${indicatorStyle.className}`;
-        indicator.innerHTML = `<i class="fas ${indicatorStyle.icon}" aria-hidden="true"></i><span>${indicatorStyle.text}</span>`;
-        indicator.hidden = false;
-    } else {
-        indicator.hidden = true;
-        indicator.textContent = '';
-    }
+    select.classList.add(indicatorStyle.className);
+    indicator.className = `email-movement-status ${indicatorStyle.className}`;
+    indicator.innerHTML = `<i class="fas ${indicatorStyle.icon}" aria-hidden="true"></i><span>${indicatorStyle.text}</span>`;
+    indicator.hidden = false;
 
     const trackingNumber = document.getElementById('emailTemplateTrackingNumber').value.trim();
     const subject = document.getElementById('bulkEmailSubject');

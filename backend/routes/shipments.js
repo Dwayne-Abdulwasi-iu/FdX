@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Shipment = require('../models/Shipment');
 const { protect, authorize } = require('../middleware/auth');
+const { sendEmail } = require('../utils/mailer');
 
 const router = express.Router();
 
@@ -355,7 +356,7 @@ router.post('/validate-address', protect, [
 // Update shipment status (admin only)
 router.put('/admin/update-status/:trackingNumber', protect, authorize('admin', 'staff'), async (req, res) => {
   try {
-    const { status, location, description, transportationType, vehicleId, estimatedArrival, isHeld, holdReason } = req.body;
+    const { status, location, description, transportationType, vehicleId, estimatedArrival, isHeld, holdReason, sendNotification = true } = req.body;
     
     console.log('Admin status update:', { trackingNumber: req.params.trackingNumber, ...req.body });
     
@@ -403,10 +404,34 @@ router.put('/admin/update-status/:trackingNumber', protect, authorize('admin', '
     shipment.status.history.push(statusUpdate);
     
     await shipment.save();
+
+    let notificationSent = false;
+    if (sendNotification) {
+      try {
+        const notificationMessage = isHeld
+          ? `Your package is currently held. Reason: ${holdReason}`
+          : getDefaultDescription(status);
+        await sendEmail({
+          to: shipment.recipient.email,
+          name: shipment.recipient.name,
+          subject: `FDX shipment update: ${status.replace(/_/g, ' ')}`,
+          message: notificationMessage,
+          trackingNumber: shipment.trackingNumber,
+          status,
+          location: location || 'Processing Center',
+          description,
+          isHeld
+        });
+        notificationSent = true;
+      } catch (emailError) {
+        console.error('Shipment notification email error:', emailError.message);
+      }
+    }
     
     res.json({
       success: true,
       message: 'Shipment status updated successfully',
+      notificationSent,
       shipment: {
         trackingNumber: shipment.trackingNumber,
         status: shipment.status,

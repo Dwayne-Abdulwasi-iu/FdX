@@ -1,7 +1,7 @@
 {
   "name": "fedex-shipping",
   "version": "1.0.0",
-  "description": "FedeX Shipping - A comprehensive shipping and package tracking website",
+  "description": "FDX Shipping - A comprehensive shipping and package tracking website",
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
@@ -17,7 +17,7 @@
     "express",
     "nodejs"
   ],
-  "author": "FedeX Shipping",
+  "author": "FDX Shipping",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",

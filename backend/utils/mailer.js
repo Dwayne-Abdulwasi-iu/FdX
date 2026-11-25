@@ -29,18 +29,41 @@ function escapeHtml(value) {
     .replace(/'/g, '&#039;');
 }
 
-function brandedEmailTemplate({ name, subject, message, trackingNumber, status, location, description }) {
+function brandedEmailTemplate({ name, subject, message, trackingNumber, status, location, description, isHeld }) {
   const safeName = escapeHtml(name || 'Valued customer');
   const safeSubject = escapeHtml(subject);
   const safeMessage = escapeHtml(message).replace(/\n/g, '<br>');
   const safeTrackingNumber = escapeHtml(trackingNumber);
-  const safeStatus = escapeHtml(status ? status.replace(/_/g, ' ').toUpperCase() : '');
+  const statusLabels = {
+    pending: 'PENDING',
+    confirmed: 'ACCEPTED / CONFIRMED',
+    picked_up: 'PICKED UP',
+    in_transit: 'IN TRANSIT',
+    out_for_delivery: 'OUT FOR DELIVERY',
+    delivered: 'DELIVERED',
+    exception: 'EXCEPTION / HELD',
+    returned: 'RETURNED'
+  };
+  const safeStatus = escapeHtml(statusLabels[status] || (status ? status.replace(/_/g, ' ').toUpperCase() : ''));
   const safeLocation = escapeHtml(location);
   const safeDescription = escapeHtml(description);
+  const statusColors = {
+    pending: { background: '#ffd400', color: '#241a00', border: '#9c7600' },
+    confirmed: { background: '#008a3b', color: '#ffffff', border: '#005e28' },
+    picked_up: { background: '#0756c9', color: '#ffffff', border: '#063b88' },
+    in_transit: { background: '#006a9c', color: '#ffffff', border: '#004766' },
+    out_for_delivery: { background: '#bd4b00', color: '#ffffff', border: '#803300' },
+    delivered: { background: '#087443', color: '#ffffff', border: '#064d2d' },
+    exception: { background: '#d00000', color: '#ffffff', border: '#8d0000' },
+    returned: { background: '#7020a0', color: '#ffffff', border: '#4a126b' }
+  };
+  const statusColor = statusColors[isHeld ? 'exception' : status] || statusColors.pending;
+  const heldLabel = isHeld && status !== 'exception' ? ' / HELD' : '';
+  const statusIcon = status === 'exception' || isHeld ? '&#9888; ' : '';
   const updateRows = trackingNumber ? `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0;border-collapse:collapse">
       <tr><td style="padding:10px;border:1px solid #e6e6e6"><strong>Tracking number</strong></td><td style="padding:10px;border:1px solid #e6e6e6">${safeTrackingNumber}</td></tr>
-      ${status ? `<tr><td style="padding:10px;border:1px solid #e6e6e6"><strong>Status</strong></td><td style="padding:10px;border:1px solid #e6e6e6">${safeStatus}</td></tr>` : ''}
+      ${status ? `<tr><td style="padding:10px;border:1px solid #e6e6e6"><strong>Status</strong></td><td style="padding:10px;border:1px solid #e6e6e6"><span style="display:inline-block;padding:6px 10px;border:2px solid ${statusColor.border};border-radius:999px;background:${statusColor.background};color:${statusColor.color};font-weight:bold">${statusIcon}${safeStatus}${heldLabel}</span></td></tr>` : ''}
       ${location ? `<tr><td style="padding:10px;border:1px solid #e6e6e6"><strong>Location</strong></td><td style="padding:10px;border:1px solid #e6e6e6">${safeLocation}</td></tr>` : ''}
     </table>
   ` : '';
@@ -65,7 +88,7 @@ function brandedEmailTemplate({ name, subject, message, trackingNumber, status, 
   `;
 }
 
-async function sendEmail({ to, name, subject, message, trackingNumber, status, location, description }) {
+async function sendEmail({ to, name, subject, message, trackingNumber, status, location, description, isHeld }) {
   const transport = createTransport();
   const from = process.env.SMTP_FROM || process.env.SMTP_USER;
   return transport.sendMail({
@@ -73,7 +96,7 @@ async function sendEmail({ to, name, subject, message, trackingNumber, status, l
     to,
     subject,
     text: `${message || description || ''}${trackingNumber ? `\n\nTracking number: ${trackingNumber}` : ''}`,
-    html: brandedEmailTemplate({ name, subject, message, trackingNumber, status, location, description })
+    html: brandedEmailTemplate({ name, subject, message, trackingNumber, status, location, description, isHeld })
   });
 }
 

@@ -1,11 +1,11 @@
-# FedEX Shipping - Complete Shipping Management System
+# FDX Shipping - Complete Shipping Management System
 
-![FedEX Shipping](https://img.shields.io/badge/FedEX-Shipping-4d148c?style=for-the-badge&logo=truck)
+![FDX Shipping](https://img.shields.io/badge/FDX-Shipping-4d148c?style=for-the-badge&logo=truck)
 ![Node.js](https://img.shields.io/badge/Node.js-22.x-green?style=flat-square&logo=node.js)
 ![Express](https://img.shields.io/badge/Express-4.18-lightgrey?style=flat-square&logo=express)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green?style=flat-square&logo=mongodb)
 
-A modern, full-stack shipping and package tracking web application built for **FedEX Shipping**. This platform provides real-time package tracking, shipping rate calculation, user authentication, and a complete admin dashboard for shipment management.
+A modern, full-stack shipping and package tracking web application built for **FDX Shipping**. This platform provides real-time package tracking, shipping rate calculation, user authentication, and a complete admin dashboard for shipment management.
 
 ---
 
@@ -16,6 +16,7 @@ A modern, full-stack shipping and package tracking web application built for **F
 - **💰 Shipping Rate Calculator** - Dynamic rate calculation based on weight, dimensions, and distance
 - **👤 User Authentication** - Secure JWT-based registration and login system
 - **📊 Admin Dashboard** - Complete shipment and user management for administrators
+- **✉️ Selected-recipient email** - Search registered accounts, select recipients, and send FDX-branded shipment messages without modifying shipment records
 - **📱 Responsive Design** - Mobile-first, fully responsive across all devices
 - **🔒 Security** - JWT authentication, bcrypt hashing, rate limiting, and helmet security headers
 
@@ -85,14 +86,22 @@ NODE_ENV=development
 PORT=3002
 
 # MongoDB Atlas
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.as7yeiu.mongodb.net/fedex-shipping?retryWrites=true&w=majority&appName=Cluster0
+MONGODB_URI=mongodb+srv://<db-user>:<db-password>@<cluster-host>/<database>?retryWrites=true&w=majority
 
 # JWT
 JWT_SECRET=your-strong-jwt-secret
 JWT_EXPIRES_IN=7d
 
 # Admin
-ADMIN_KEY=FEDEX_ADMIN_2025
+ADMIN_KEY=replace-with-a-random-admin-key
+
+# Gmail SMTP (use a Gmail App Password)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-gmail-address@gmail.com
+SMTP_PASS=your-16-character-gmail-app-password
+SMTP_FROM=your-gmail-address@gmail.com
 
 # CORS
 CORS_ORIGIN=*
@@ -231,6 +240,11 @@ This project is configured for deployment on **Render**.
    - `MONGODB_URI=<your-atlas-uri>`
    - `JWT_SECRET=<strong-secret>`
    - `ADMIN_KEY=<your-admin-key>`
+   - `SMTP_HOST=smtp.gmail.com`
+   - `SMTP_PORT=587`
+   - `SMTP_USER=<your-gmail-address>`
+   - `SMTP_PASS=<your-gmail-app-password>`
+   - `SMTP_FROM=<your-gmail-address>`
 3. Deploy — Render uses `npm start` automatically via `render.yaml`
 
 ### Production Checklist
@@ -239,7 +253,7 @@ This project is configured for deployment on **Render**.
 - [x] HTTPS enabled (via Render)
 - [x] Rate limiting active
 - [x] Security headers enabled (Helmet.js)
-- [ ] Email notifications
+- [ ] Configure Gmail SMTP credentials for branded email delivery
 - [ ] Custom domain configured
 
 ---
@@ -301,4 +315,4 @@ This project is licensed under the MIT License.
 
 ---
 
-**FedEX Shipping** — Fast, Reliable Package Delivery Worldwide 🚚
+**FDX Shipping** — Fast, Reliable Package Delivery Worldwide 🚚
