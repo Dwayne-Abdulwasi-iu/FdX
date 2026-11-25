@@ -69,9 +69,9 @@ function brandedEmailTemplate({ name, subject, message, trackingNumber, status, 
   const statusColor = statusColors[isHeld ? 'exception' : status] || statusColors.pending;
   const heldLabel = isHeld && status !== 'exception' ? ' / HELD' : '';
   const statusIcon = status === 'exception' || isHeld ? '&#9888; ' : '';
-  const updateRows = trackingNumber ? `
+  const updateRows = trackingNumber || status || location ? `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0;border-collapse:collapse">
-      <tr><td style="padding:10px;border:1px solid #e6e6e6"><strong>Tracking number</strong></td><td style="padding:10px;border:1px solid #e6e6e6">${safeTrackingNumber}</td></tr>
+      ${trackingNumber ? `<tr><td style="padding:10px;border:1px solid #e6e6e6"><strong>Tracking number</strong></td><td style="padding:10px;border:1px solid #e6e6e6">${safeTrackingNumber}</td></tr>` : ''}
       ${status ? `<tr><td style="padding:10px;border:1px solid #e6e6e6"><strong>Status</strong></td><td style="padding:10px;border:1px solid #e6e6e6"><span style="display:inline-block;padding:6px 10px;border:2px solid ${statusColor.border};border-radius:999px;background:${statusColor.background};color:${statusColor.color};font-weight:bold">${statusIcon}${safeStatus}${heldLabel}</span></td></tr>` : ''}
       ${location ? `<tr><td style="padding:10px;border:1px solid #e6e6e6"><strong>Location</strong></td><td style="padding:10px;border:1px solid #e6e6e6">${safeLocation}</td></tr>` : ''}
     </table>
@@ -109,11 +109,12 @@ async function sendEmail({ to, name, subject, message, trackingNumber, status, l
   });
 }
 
-async function sendBulkEmail({ recipients, subject, message }) {
+async function sendBulkEmail({ recipients, subject, message, trackingNumber, status }) {
   const transport = createTransport();
   const from = process.env.SMTP_FROM || process.env.SMTP_USER;
   let sent = 0;
   let failed = 0;
+  const errorCodes = {};
 
   for (const recipient of recipients) {
     try {
@@ -121,8 +122,8 @@ async function sendBulkEmail({ recipients, subject, message }) {
         from: `FDX SHIPPING <${from}>`,
         to: recipient.email,
         subject,
-        text: message,
-        html: brandedEmailTemplate({ name: recipient.name, subject, message })
+        text: `${message}${status ? `\n\nStatus: ${status.replace(/_/g, ' ').toUpperCase()}` : ''}${trackingNumber ? `\n\nTracking number: ${trackingNumber}` : ''}`,
+        html: brandedEmailTemplate({ name: recipient.name, subject, message, trackingNumber, status })
       });
       sent++;
     } catch (error) {
@@ -132,10 +133,12 @@ async function sendBulkEmail({ recipients, subject, message }) {
         command: error.command
       });
       failed++;
+      const code = /^[A-Z0-9_]{1,30}$/.test(error.code || '') ? error.code : 'SMTP_ERROR';
+      errorCodes[code] = (errorCodes[code] || 0) + 1;
     }
   }
 
-  return { sent, failed };
+  return { sent, failed, errorCodes };
 }
 
-module.exports = { sendEmail, sendBulkEmail };
+module.exports = { sendEmail, sendBulkEmail, brandedEmailTemplate };

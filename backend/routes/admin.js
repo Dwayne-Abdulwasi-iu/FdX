@@ -313,7 +313,13 @@ router.post('/email/send-selected', [
   body('userIds').isArray({ min: 1, max: 100 }).withMessage('Select between 1 and 100 users'),
   body('userIds.*').isMongoId().withMessage('Invalid user ID'),
   body('subject').trim().notEmpty().isLength({ max: 200 }).withMessage('Subject is required'),
-  body('message').trim().notEmpty().isLength({ max: 5000 }).withMessage('Message is required')
+  body('message').trim().notEmpty().isLength({ max: 5000 }).withMessage('Message is required'),
+  body('status').optional({ values: 'falsy' }).isIn([
+    'pending', 'confirmed', 'picked_up', 'in_transit',
+    'out_for_delivery', 'delivered', 'exception', 'returned'
+  ]).withMessage('Invalid shipment status'),
+  body('trackingNumber').optional({ values: 'falsy' }).trim().isLength({ max: 20 })
+    .withMessage('Tracking number cannot exceed 20 characters')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -344,13 +350,21 @@ router.post('/email/send-selected', [
     const result = await sendBulkEmail({
       recipients,
       subject: req.body.subject,
-      message: req.body.message
+      message: req.body.message,
+      status: req.body.status || undefined,
+      trackingNumber: req.body.trackingNumber || undefined
     });
 
     if (result.sent === 0) {
+      const errorCodes = Object.keys(result.errorCodes || {});
+      const failureHint = errorCodes.includes('EAUTH')
+        ? 'Check SMTP_USER and SMTP_PASS; Gmail requires an app password.'
+        : errorCodes.some(code => ['ECONNECTION', 'ESOCKET', 'ETIMEDOUT'].includes(code))
+          ? 'Check SMTP_HOST, SMTP_PORT, and SMTP_SECURE.'
+          : 'Check the SMTP configuration and server logs.';
       return res.status(502).json({
         success: false,
-        message: 'Email could not be delivered to any selected user',
+        message: `Email could not be delivered to any selected user${errorCodes.length ? ` (SMTP error: ${errorCodes.join(', ')})` : ''}. ${failureHint}`,
         sent: result.sent,
         failed: result.failed,
         total: recipients.length

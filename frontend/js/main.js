@@ -4465,7 +4465,9 @@ async function sendBulkEmailFromAdmin(event) {
             body: JSON.stringify({
                 userIds: [...emailRecipientSelections.keys()],
                 subject: formData.get('subject'),
-                message: formData.get('message')
+                message: formData.get('message'),
+                status: document.getElementById('emailMovementTemplate').value,
+                trackingNumber: document.getElementById('emailTemplateTrackingNumber').value.trim()
             })
         });
         const data = await response.json();
